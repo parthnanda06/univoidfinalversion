@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: univoid-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    rootDir: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        fromEnvVar: MONGODB_URI
+      - key: JWT_SECRET
+        fromEnvVar: JWT_SECRET
+      - key: FRONTEND_URL
+        value: https://univoid.vercel.app
