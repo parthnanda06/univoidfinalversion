@@ -70,7 +70,7 @@ export const ChatProvider = ({ children }) => {
     }
 
     const token = localStorage.getItem('univoid_token');
-    const socketUrl = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin;
+    const socketUrl = import.meta.env.DEV ? 'http://localhost:5000' : 'https://univoid-backend.onrender.com';
     const socket = io(socketUrl, {
       auth: { token },
       transports: ['websocket'],
