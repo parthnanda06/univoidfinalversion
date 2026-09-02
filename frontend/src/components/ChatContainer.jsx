@@ -243,7 +243,7 @@ const ChatWindow = ({ chat, index, total }) => {
           {/* Messages */}
           <div
             style={{
-              flex: 1,
+              flex: isFullScreen ? 1 : 'none',
               overflowY: 'auto',
               padding: '0.75rem',
               display: 'flex',

@@ -232,9 +232,8 @@ export const ChatProvider = ({ children }) => {
     }
 
     setOpenChats((prev) => {
-      // Max 3 concurrent open chats
-      const updated = prev.length >= 3 ? prev.slice(1) : prev;
-      return [...updated, { partner, messages: [], isLoading: true, minimized: false, isTyping: false }];
+      // Max 1 concurrent open chat
+      return [{ partner, messages: [], isLoading: true, minimized: false, isTyping: false }];
     });
 
     // Join socket room
