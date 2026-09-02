@@ -122,8 +122,8 @@ const ChatWindow = ({ chat, index, total }) => {
     inputRef.current?.focus();
   };
 
-  // Position: stack from right, each window 320px wide + 12px gap
-  const rightOffset = 12 + (total - 1 - index) * (320 + 12);
+  // Position: stack from right, each window 20rem wide + 0.75rem gap
+  const rightOffset = 0.75 + (total - 1 - index) * 20.75;
 
   const initials = chat.partner.name?.charAt(0)?.toUpperCase();
 
@@ -141,9 +141,9 @@ const ChatWindow = ({ chat, index, total }) => {
         position: 'fixed',
         bottom: 0,
         top: isFullScreen ? 0 : 'auto',
-        right: isFullScreen ? 0 : `${rightOffset}px`,
+        right: isFullScreen ? 0 : `${rightOffset}rem`,
         left: isFullScreen ? 0 : 'auto',
-        width: isFullScreen ? '100vw' : '320px',
+        width: isFullScreen ? '100vw' : '20rem',
         height: isFullScreen ? '100vh' : 'auto',
         zIndex: isFullScreen ? 2000 : 1000,
         display: 'flex',
@@ -245,11 +245,11 @@ const ChatWindow = ({ chat, index, total }) => {
             style={{
               flex: 1,
               overflowY: 'auto',
-              padding: '12px',
+              padding: '0.75rem',
               display: 'flex',
               flexDirection: 'column',
-              gap: '4px',
-              height: isFullScreen ? '100%' : 340,
+              gap: '0.25rem',
+              height: isFullScreen ? '100%' : '21.25rem',
               background: 'rgba(15,23,42,0.95)',
             }}
             onFocus={() => emitMarkRead(chat.partner._id)}
