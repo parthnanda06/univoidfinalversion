@@ -3,7 +3,7 @@ services:
     name: univoid-backend
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npx prisma generate
     startCommand: node server.js
     rootDir: backend
     envVars:
@@ -11,8 +11,8 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: MONGODB_URI
-        fromEnvVar: MONGODB_URI
+      - key: DATABASE_URL
+        fromEnvVar: DATABASE_URL
       - key: JWT_SECRET
         fromEnvVar: JWT_SECRET
       - key: FRONTEND_URL
