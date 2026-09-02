@@ -59,7 +59,7 @@ const Login = () => {
       <div className="relative z-10 w-full h-full flex flex-col lg:flex-row items-center justify-start px-6 sm:px-10 lg:pl-[8%] xl:pl-[12%] py-12">
         
         {/* Left side: Clean Dark Card */}
-        <div className="w-full lg:w-[600px] xl:w-[650px] flex-shrink-0">
+        <div className="w-full lg:w-[450px] flex-shrink-0">
           <div className="w-full bg-[#1e1f26]/40 backdrop-blur-2xl p-8 sm:p-12 rounded-[24px] border border-white/10 shadow-2xl text-white">
             <div className="mb-6">
               <div className="flex bg-[#121318]/50 p-1 rounded-xl border border-white/10 w-fit">
