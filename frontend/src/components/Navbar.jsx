@@ -261,10 +261,10 @@ const Navbar = () => {
                       <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover shadow-sm" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5c4dff] to-[#8b80ff] flex items-center justify-center text-sm font-bold text-white shadow-sm">
-                        {user.name?.charAt(0).toUpperCase()}
+                        {user?.name ? user.name.charAt(0)?.toUpperCase() : 'U'}
                       </div>
                     )}
-                    <span className="text-sm font-bold text-gray-700 hidden xl:block">{user.name?.split(' ')[0]}</span>
+                    <span className="text-sm font-bold text-gray-700 hidden xl:block">{user?.name ? user.name.split(' ')[0] : 'User'}</span>
                     <HiChevronDown className="w-4 h-4 text-gray-400 hidden xl:block" />
                   </button>
 

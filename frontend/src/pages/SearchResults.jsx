@@ -162,7 +162,7 @@ const SearchResults = () => {
                                       <img src={person.avatar} className="w-12 h-12 rounded-full object-cover" alt={person.name} />
                                     ) : (
                                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#5c4dff] to-blue-500 flex items-center justify-center text-white font-bold">
-                                        {person.name?.charAt(0).toUpperCase()}
+                                        {person.name?.charAt(0)?.toUpperCase()}
                                       </div>
                                     )}
                                   </Link>

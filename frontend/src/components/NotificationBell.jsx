@@ -127,7 +127,7 @@ const NotificationBell = () => {
                           <img src={from.avatar} alt={from.name} className="w-9 h-9 rounded-xl object-cover" />
                         ) : (
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-surface-900 text-sm font-bold">
-                            {from.name?.charAt(0).toUpperCase()}
+                            {from.name?.charAt(0)?.toUpperCase()}
                           </div>
                         )}
                       </div>

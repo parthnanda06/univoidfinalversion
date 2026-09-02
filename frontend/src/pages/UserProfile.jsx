@@ -151,7 +151,7 @@ const UserProfile = () => {
                 />
               ) : (
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-surface-900 text-2xl font-bold ring-4 ring-primary-500/30">
-                  {profile.name?.charAt(0).toUpperCase()}
+                  {profile.name?.charAt(0)?.toUpperCase()}
                 </div>
               )}
               {profile.openToWork && (
@@ -322,7 +322,7 @@ const UserProfile = () => {
                             className="flex items-center gap-3 p-3 rounded-xl bg-white border border-surface-200 hover:bg-white border border-surface-200 transition-colors group">
                             {person.avatar
                               ? <img src={person.avatar} alt={person.name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
-                              : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-surface-900 font-bold text-sm shrink-0">{person.name?.charAt(0).toUpperCase()}</div>
+                              : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-surface-900 font-bold text-sm shrink-0">{person.name?.charAt(0)?.toUpperCase()}</div>
                             }
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-surface-900 group-hover:text-primary-700 transition-colors truncate">{person.name}</p>
@@ -370,7 +370,7 @@ const UserProfile = () => {
               { label: 'Branch', value: profile.branch },
               { label: 'Year', value: profile.year },
               { label: 'Location', value: profile.location },
-              { label: 'Role', value: profile.role?.charAt(0).toUpperCase() + profile.role?.slice(1) },
+              { label: 'Role', value: profile.role?.charAt(0)?.toUpperCase() + profile.role?.slice(1) },
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-[10px] uppercase tracking-wider text-surface-500 mb-1">{label}</p>

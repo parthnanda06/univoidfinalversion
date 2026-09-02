@@ -21,7 +21,7 @@ const seenLabel = (seenAt) => {
 /* ─── Live-updating seen label (re-renders every 30s) ───── */
 const SeenReceipt = ({ seenAt, avatar, name }) => {
   const [label, setLabel] = useState(() => seenLabel(seenAt));
-  const initials = name?.charAt(0).toUpperCase();
+  const initials = name?.charAt(0)?.toUpperCase();
 
   useEffect(() => {
     setLabel(seenLabel(seenAt));
@@ -125,7 +125,7 @@ const ChatWindow = ({ chat, index, total }) => {
   // Position: stack from right, each window 320px wide + 12px gap
   const rightOffset = 12 + (total - 1 - index) * (320 + 12);
 
-  const initials = chat.partner.name?.charAt(0).toUpperCase();
+  const initials = chat.partner.name?.charAt(0)?.toUpperCase();
 
   // Find the last message I sent that has been read — to show "Seen" under it
   const myMessages = chat.messages

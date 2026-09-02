@@ -26,7 +26,7 @@ const Sidebar = () => {
         <div className="flex items-center justify-between cursor-pointer group">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-[#5c4dff] flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+              {user?.name ? user.name.charAt(0)?.toUpperCase() : 'U'}
             </div>
             <div className="min-w-0">
               <p className="text-[15px] font-bold text-gray-900 truncate">{user?.name}</p>

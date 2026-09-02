@@ -27,7 +27,7 @@ const Avatar = ({ user, size = 'lg' }) => {
   }
   return (
     <div className={`${sz} rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold ring-4 ring-white shadow-md`}>
-      {user?.name?.charAt(0).toUpperCase()}
+      {user?.name?.charAt(0)?.toUpperCase()}
     </div>
   );
 };
@@ -668,7 +668,7 @@ const Profile = () => {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
                  <div className="flex gap-3 sm:gap-4 mb-4">
                     <div className="w-10 h-10 rounded-full bg-[#5c4dff] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm">
-                       {user?.name?.charAt(0).toUpperCase()}
+                       {user?.name?.charAt(0)?.toUpperCase()}
                     </div>
                     <input 
                        type="text" 
@@ -725,7 +725,7 @@ const Profile = () => {
                             <img src={post.author.avatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
                          ) : (
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-700 to-green-900 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                               {post.author?.name?.charAt(0).toUpperCase() || user?.name?.charAt(0).toUpperCase()}
+                               {post.author?.name?.charAt(0)?.toUpperCase() || user?.name?.charAt(0)?.toUpperCase()}
                             </div>
                          )}
                          <div>

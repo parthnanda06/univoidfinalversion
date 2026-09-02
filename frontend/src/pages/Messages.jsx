@@ -202,7 +202,7 @@ const Messages = () => {
                       <img src={conv.partner.avatar} alt={conv.partner.name} className="w-12 h-12 rounded-full object-cover shadow-sm" />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#5c4dff] to-[#34d399] flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                        {conv.partner?.name?.charAt(0).toUpperCase()}
+                        {conv.partner?.name?.charAt(0)?.toUpperCase()}
                       </div>
                     )}
                     {isPartnerOnline && (
@@ -249,7 +249,7 @@ const Messages = () => {
                       <img src={activePartner.avatar} alt={activePartner.name} className="w-11 h-11 rounded-full object-cover shadow-sm" />
                     ) : (
                       <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#5c4dff] to-[#34d399] flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                        {activePartner.name?.charAt(0).toUpperCase()}
+                        {activePartner.name?.charAt(0)?.toUpperCase()}
                       </div>
                     )}
                     {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></span>}
@@ -303,7 +303,7 @@ const Messages = () => {
                            <div key={msg._id || i} className={`flex w-full ${isMine ? 'justify-end' : 'justify-start'}`}>
                               {!isMine && (
                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5c4dff] to-[#34d399] flex items-center justify-center text-white font-bold text-xs shadow-sm mr-3 mt-auto shrink-0 overflow-hidden">
-                                    {activePartner.avatar ? <img src={activePartner.avatar} className="w-full h-full object-cover" /> : activePartner.name?.charAt(0).toUpperCase()}
+                                    {activePartner.avatar ? <img src={activePartner.avatar} className="w-full h-full object-cover" /> : activePartner.name?.charAt(0)?.toUpperCase()}
                                  </div>
                               )}
                               <div className="flex flex-col max-w-[65%]">
@@ -395,7 +395,7 @@ const Messages = () => {
                         <img src={activePartner.avatar} alt={activePartner.name} className="w-full h-full rounded-full object-cover" />
                      ) : (
                         <div className="w-full h-full rounded-full bg-gradient-to-br from-[#5c4dff] to-[#34d399] flex items-center justify-center text-white font-bold text-2xl">
-                           {activePartner.name?.charAt(0).toUpperCase()}
+                           {activePartner.name?.charAt(0)?.toUpperCase()}
                         </div>
                      )}
                      {isOnline && <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white"></span>}

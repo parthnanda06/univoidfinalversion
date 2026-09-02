@@ -59,7 +59,7 @@ const Dashboard = () => {
       {/* Header */}
       <div className="mb-10 relative">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">
-          {greeting()}, {user?.name?.split(' ')[0]}! 👋
+          {greeting()}, {user?.name ? user.name.split(' ')[0] : 'User'}! 👋
         </h1>
         <p className="text-gray-500 font-medium">Let's make today productive.</p>
         

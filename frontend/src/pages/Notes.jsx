@@ -175,7 +175,7 @@ const Notes = () => {
                      {note.uploadedBy?.name?.charAt(0)}
                    </div>
                    <div className="text-[10px] font-medium text-gray-400 flex flex-col">
-                     <span>{note.uploadedBy?.name?.split(' ')[0]}</span>
+                     <span>{note.uploadedBy?.name ? note.uploadedBy.name.split(' ')[0] : 'Unknown'}</span>
                      <span>{note.downloads} downloads</span>
                    </div>
                 </div>

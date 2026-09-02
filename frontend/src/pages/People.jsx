@@ -51,7 +51,7 @@ const UserCard = ({ person, currentUser, onConnect, pendingOutIds, onPendingChan
     }
   };
 
-  const initials = person.name?.charAt(0).toUpperCase();
+  const initials = person.name?.charAt(0)?.toUpperCase();
 
   return (
     <Link

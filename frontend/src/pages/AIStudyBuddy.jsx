@@ -365,7 +365,7 @@ const AIStudyBuddy = () => {
 
                       {msg.role === 'user' && (
                         <div className="w-9 h-9 rounded-full bg-[#5c4dff] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ml-4 shadow-sm mt-1">
-                          {user?.name?.charAt(0).toUpperCase()}
+                          {user?.name?.charAt(0)?.toUpperCase()}
                         </div>
                       )}
                     </div>

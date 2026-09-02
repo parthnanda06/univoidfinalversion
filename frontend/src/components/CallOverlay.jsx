@@ -96,7 +96,7 @@ const CallOverlay = () => {
             {incomingCall.avatar ? (
               <img src={incomingCall.avatar} alt={incomingCall.name} className="w-full h-full rounded-full object-cover p-0.5 bg-white" />
             ) : (
-              <span className="text-3xl font-bold text-white">{incomingCall.name?.charAt(0).toUpperCase()}</span>
+              <span className="text-3xl font-bold text-white">{incomingCall.name?.charAt(0)?.toUpperCase()}</span>
             )}
             <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#25D366] rounded-full flex items-center justify-center shadow-sm animate-pulse border-2 border-white">
               {incomingCall.isVideo ? <HiOutlineVideoCamera className="text-white w-4 h-4" /> : <HiOutlinePhoneIncoming className="text-white w-4 h-4" />}
@@ -134,7 +134,7 @@ const CallOverlay = () => {
                 {activeCall?.avatar ? (
                   <img src={activeCall.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="w-full h-full flex items-center justify-center text-gray-600 text-xs font-bold">{activeCall?.name?.charAt(0).toUpperCase()}</span>
+                  <span className="w-full h-full flex items-center justify-center text-gray-600 text-xs font-bold">{activeCall?.name?.charAt(0)?.toUpperCase()}</span>
                 )}
               </div>
               <div>
@@ -164,7 +164,7 @@ const CallOverlay = () => {
                    {activeCall?.avatar ? (
                      <img src={activeCall.avatar} alt="Avatar" className="w-full h-full rounded-full object-cover p-1 bg-white" />
                    ) : (
-                     <span className="text-4xl font-bold text-white">{activeCall?.name?.charAt(0).toUpperCase()}</span>
+                     <span className="text-4xl font-bold text-white">{activeCall?.name?.charAt(0)?.toUpperCase()}</span>
                    )}
                  </div>
                  {!callAccepted && activeCall?.isCaller && (
