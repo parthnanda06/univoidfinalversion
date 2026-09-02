@@ -12,8 +12,8 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        fromEnvVar: DATABASE_URL
+        sync: false
       - key: JWT_SECRET
-        fromEnvVar: JWT_SECRET
+        sync: false
       - key: FRONTEND_URL
         value: https://univoid.vercel.app
