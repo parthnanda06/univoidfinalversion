@@ -14,7 +14,7 @@ import {
 const UserCard = ({ person, currentUser, onConnect, pendingOutIds, onPendingChange }) => {
   const [loading, setLoading] = useState(false);
   const { openChat } = useChat();
-  const isConnected = currentUser?.connections?.map(String)?.includes(person._id);
+  const isConnected = currentUser?.connections?.some(c => String(c._id || c) === String(person._id));
   const isPending = pendingOutIds.includes(person._id);
 
   const handleConnect = async (e) => {
@@ -56,25 +56,25 @@ const UserCard = ({ person, currentUser, onConnect, pendingOutIds, onPendingChan
   return (
     <Link
       to={`/people/${person._id}`}
-      className="glass-card rounded-2xl p-5 flex flex-col gap-4 hover:ring-1 hover:ring-primary-500/30 hover:bg-surface-800/30 transition-all duration-300 group animate-fade-in cursor-pointer block"
+      className="bg-white border border-surface-200 shadow-sm rounded-2xl p-5 flex flex-col gap-4 hover:ring-1 hover:ring-primary-500/30 hover:bg-white border border-surface-200/30 transition-all duration-300 group animate-fade-in cursor-pointer block"
     >
       {/* Header */}
       <div className="flex items-start gap-4">
         {person.avatar ? (
           <img src={person.avatar} alt={person.name} className="w-14 h-14 rounded-xl object-cover ring-2 ring-primary-500/20 shrink-0 group-hover:ring-primary-500/40 transition-all" />
         ) : (
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white text-xl font-bold shrink-0">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-surface-900 text-xl font-bold shrink-0">
             {initials}
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-base font-bold text-white group-hover:text-primary-300 transition-colors truncate">
+          <p className="text-base font-bold text-surface-900 group-hover:text-primary-700 transition-colors truncate">
             {person.name}
           </p>
           {person.headline ? (
             <p className="text-xs text-accent-300 mt-0.5 line-clamp-2">{person.headline}</p>
           ) : (
-            <p className="text-xs text-surface-400 mt-0.5 italic">No headline</p>
+            <p className="text-xs text-surface-500 mt-0.5 italic">No headline</p>
           )}
         </div>
         {person.openToWork && (
@@ -87,14 +87,14 @@ const UserCard = ({ person, currentUser, onConnect, pendingOutIds, onPendingChan
       {/* Meta */}
       <div className="space-y-1.5">
         {(person.college || person.branch || person.year) && (
-          <div className="flex items-start gap-1.5 text-xs text-surface-300">
-            <HiOutlineAcademicCap className="w-3.5 h-3.5 text-primary-400 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-1.5 text-xs text-surface-500">
+            <HiOutlineAcademicCap className="w-3.5 h-3.5 text-primary-600 mt-0.5 shrink-0" />
             <span className="line-clamp-1">{[person.college, person.branch, person.year].filter(Boolean).join(' · ')}</span>
           </div>
         )}
         {person.location && (
-          <div className="flex items-center gap-1.5 text-xs text-surface-300">
-            <HiOutlineLocationMarker className="w-3.5 h-3.5 text-accent-400 shrink-0" />
+          <div className="flex items-center gap-1.5 text-xs text-surface-500">
+            <HiOutlineLocationMarker className="w-3.5 h-3.5 text-accent-600 shrink-0" />
             <span>{person.location}</span>
           </div>
         )}
@@ -104,7 +104,7 @@ const UserCard = ({ person, currentUser, onConnect, pendingOutIds, onPendingChan
       {person.skills?.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {person.skills.slice(0, 4).map(s => (
-            <span key={s} className="text-[10px] bg-primary-500/10 text-primary-300 border border-primary-500/15 px-2 py-0.5 rounded-full">
+            <span key={s} className="text-[10px] bg-primary-500/10 text-primary-700 border border-primary-500/15 px-2 py-0.5 rounded-full">
               {s}
             </span>
           ))}
@@ -115,10 +115,10 @@ const UserCard = ({ person, currentUser, onConnect, pendingOutIds, onPendingChan
       )}
 
       {/* Stats + action */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/5">
-        <div className="flex gap-4 text-xs text-surface-400">
-          <span><strong className="text-white">{person.connections?.length ?? 0}</strong> connections</span>
-          <span><strong className="text-white">{person.followers?.length ?? 0}</strong> followers</span>
+      <div className="flex items-center justify-between pt-2 border-t border-surface-200">
+        <div className="flex gap-4 text-xs text-surface-500">
+          <span><strong className="text-surface-900">{person.connections?.length ?? 0}</strong> connections</span>
+          <span><strong className="text-surface-900">{person.followers?.length ?? 0}</strong> followers</span>
         </div>
 
         {isConnected ? (
@@ -126,7 +126,7 @@ const UserCard = ({ person, currentUser, onConnect, pendingOutIds, onPendingChan
             {/* Message button */}
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); openChat(person); }}
-              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200 bg-primary-500/20 text-primary-300 border border-primary-500/30 hover:bg-primary-500/30"
+              className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200 bg-primary-500/20 text-primary-700 border border-primary-500/30 hover:bg-primary-500/30"
             >
               <HiOutlineChatAlt2 className="w-3.5 h-3.5" /> Message
             </button>
@@ -152,7 +152,7 @@ const UserCard = ({ person, currentUser, onConnect, pendingOutIds, onPendingChan
             className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200 ${
               isPending
                 ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20'
-                : 'bg-primary-500/20 text-primary-300 border border-primary-500/30 hover:bg-primary-500/30'
+                : 'bg-primary-500/20 text-primary-700 border border-primary-500/30 hover:bg-primary-500/30'
             }`}
           >
             {loading ? (
@@ -232,13 +232,13 @@ const People = () => {
     <div className="p-4 lg:p-8 max-w-6xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-1">🔍 Find People</h1>
-        <p className="text-surface-400 text-sm">Discover students, collaborators, and fellow learners across UniVoid.</p>
+        <h1 className="text-3xl font-bold text-surface-900 mb-1">🔍 Find People</h1>
+        <p className="text-surface-500 text-sm">Discover students, collaborators, and fellow learners across UniVoid.</p>
       </div>
 
       {/* Search bar */}
       <div className="relative mb-6">
-        <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400 pointer-events-none" />
+        <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-500 pointer-events-none" />
         <input
           id="people-search-input"
           type="search"
@@ -255,12 +255,12 @@ const People = () => {
 
       {/* Result count */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-surface-400">
+        <p className="text-sm text-surface-500">
           {loading && users.length === 0 ? 'Searching…' : `${total} people found`}
-          {query && <span className="text-primary-400 ml-1">for "{query}"</span>}
+          {query && <span className="text-primary-600 ml-1">for "{query}"</span>}
         </p>
         {query && (
-          <button onClick={() => setQuery('')} className="text-xs text-surface-400 hover:text-white flex items-center gap-1 transition-colors">
+          <button onClick={() => setQuery('')} className="text-xs text-surface-500 hover:text-surface-900 flex items-center gap-1 transition-colors">
             <HiOutlineRefresh className="w-3.5 h-3.5" /> Clear
           </button>
         )}
@@ -300,26 +300,26 @@ const People = () => {
       ) : !loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="text-6xl mb-4">🧑‍🎓</div>
-          <p className="text-lg font-semibold text-white mb-2">No people found</p>
-          <p className="text-sm text-surface-400">
+          <p className="text-lg font-semibold text-surface-900 mb-2">No people found</p>
+          <p className="text-sm text-surface-500">
             {query ? `Try searching something different` : 'No other users yet. Invite your friends!'}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="glass-card rounded-2xl p-5 animate-pulse space-y-3">
+            <div key={i} className="bg-white border border-surface-200 shadow-sm rounded-2xl p-5 animate-pulse space-y-3">
               <div className="flex gap-4">
-                <div className="w-14 h-14 rounded-xl bg-surface-800" />
+                <div className="w-14 h-14 rounded-xl bg-white border border-surface-200" />
                 <div className="flex-1 space-y-2 pt-1">
-                  <div className="h-3 bg-surface-800 rounded w-3/4" />
-                  <div className="h-2 bg-surface-800 rounded w-1/2" />
+                  <div className="h-3 bg-white border border-surface-200 rounded w-3/4" />
+                  <div className="h-2 bg-white border border-surface-200 rounded w-1/2" />
                 </div>
               </div>
-              <div className="h-2 bg-surface-800 rounded w-full" />
-              <div className="h-2 bg-surface-800 rounded w-5/6" />
+              <div className="h-2 bg-white border border-surface-200 rounded w-full" />
+              <div className="h-2 bg-white border border-surface-200 rounded w-5/6" />
               <div className="flex gap-2">
-                {[1, 2, 3].map(j => <div key={j} className="h-5 bg-surface-800 rounded-full w-16" />)}
+                {[1, 2, 3].map(j => <div key={j} className="h-5 bg-white border border-surface-200 rounded-full w-16" />)}
               </div>
             </div>
           ))}

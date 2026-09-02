@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  HiX, HiMinus, HiPaperAirplane, HiOutlineCheck, HiOutlineCheckCircle,
+  HiX, HiMinus, HiPaperAirplane, HiOutlineCheck, HiOutlineCheckCircle, HiOutlineArrowsExpand, HiOutlineEmojiHappy
 } from 'react-icons/hi';
+import EmojiPicker from 'emoji-picker-react';
 
 /* ─── Relative "seen" time helper ───────────────────────── */
 const seenLabel = (seenAt) => {
@@ -57,8 +58,11 @@ const ChatWindow = ({ chat, index, total }) => {
   const { closeChat, toggleMinimize, sendMessage, emitTyping, emitMarkRead, onlineUsers } = useChat();
   const [text, setText] = useState('');
   const [typingTimeout, setTypingTimeout] = useState(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const emojiPickerRef = useRef(null);
 
   const isOnline = onlineUsers.includes(String(chat.partner._id));
 
@@ -68,6 +72,21 @@ const ChatWindow = ({ chat, index, total }) => {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chat.messages, chat.minimized]);
+
+  // Close emoji picker on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   // Emit mark_read when chat is focused/unminimized
   useEffect(() => {
@@ -98,6 +117,11 @@ const ChatWindow = ({ chat, index, total }) => {
     setTypingTimeout(setTimeout(() => emitTyping(chat.partner._id, false), 2000));
   };
 
+  const handleEmojiClick = (emojiObject) => {
+    setText((prev) => prev + emojiObject.emoji);
+    inputRef.current?.focus();
+  };
+
   // Position: stack from right, each window 320px wide + 12px gap
   const rightOffset = 12 + (total - 1 - index) * (320 + 12);
 
@@ -116,18 +140,21 @@ const ChatWindow = ({ chat, index, total }) => {
       style={{
         position: 'fixed',
         bottom: 0,
-        right: `${rightOffset}px`,
-        width: '320px',
-        zIndex: 1000,
+        top: isFullScreen ? 0 : 'auto',
+        right: isFullScreen ? 0 : `${rightOffset}px`,
+        left: isFullScreen ? 0 : 'auto',
+        width: isFullScreen ? '100vw' : '320px',
+        height: isFullScreen ? '100vh' : 'auto',
+        zIndex: isFullScreen ? 2000 : 1000,
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: '16px 16px 0 0',
+        borderRadius: isFullScreen ? '0' : '16px 16px 0 0',
         overflow: 'hidden',
         boxShadow: '0 -4px 40px rgba(99,102,241,0.25), 0 4px 24px rgba(0,0,0,0.5)',
         border: '1px solid rgba(99,102,241,0.2)',
         background: 'rgba(15,23,42,0.98)',
         backdropFilter: 'blur(24px)',
-        transition: 'height 0.25s cubic-bezier(0.4,0,0.2,1)',
+        transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
       }}
     >
       {/* Header */}
@@ -183,7 +210,20 @@ const ChatWindow = ({ chat, index, total }) => {
         {/* Controls */}
         <div style={{ display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={() => toggleMinimize(chat.partner._id)}
+            onClick={() => {
+              setIsFullScreen(!isFullScreen);
+              if (chat.minimized) toggleMinimize(chat.partner._id);
+            }}
+            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, width: 26, height: 26, cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+          >
+            <HiOutlineArrowsExpand style={{ width: 14, height: 14 }} />
+          </button>
+          <button
+            onClick={() => {
+              if (isFullScreen) setIsFullScreen(false);
+              toggleMinimize(chat.partner._id);
+            }}
             style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 6, width: 26, height: 26, cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <HiMinus style={{ width: 14, height: 14 }} />
@@ -209,7 +249,7 @@ const ChatWindow = ({ chat, index, total }) => {
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
-              height: 340,
+              height: isFullScreen ? '100%' : 340,
               background: 'rgba(15,23,42,0.95)',
             }}
             onFocus={() => emitMarkRead(chat.partner._id)}
@@ -280,16 +320,39 @@ const ChatWindow = ({ chat, index, total }) => {
           </div>
 
           {/* Input */}
-          <div style={{
-            padding: '10px 12px',
-            borderTop: '1px solid rgba(99,102,241,0.15)',
-            display: 'flex',
-            alignItems: 'flex-end',
-            gap: 8,
-            background: 'rgba(15,23,42,0.98)',
-          }}>
-            <textarea
-              ref={inputRef}
+          <div style={{ position: 'relative' }} ref={emojiPickerRef}>
+            {showEmojiPicker && (
+              <div style={{ position: 'absolute', bottom: '100%', left: 0, zIndex: 1000, marginBottom: 8 }}>
+                <EmojiPicker onEmojiClick={handleEmojiClick} theme="dark" width={300} height={400} />
+              </div>
+            )}
+            <div style={{
+              padding: '10px 12px',
+              borderTop: '1px solid rgba(99,102,241,0.15)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              gap: 8,
+              background: 'rgba(15,23,42,0.98)',
+            }}>
+              <button
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                style={{
+                  width: 36, height: 36,
+                  borderRadius: 10,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: showEmojiPicker ? '#818cf8' : '#64748b',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'color 0.2s',
+                }}
+                title="Add Emoji"
+              >
+                <HiOutlineEmojiHappy style={{ width: 22, height: 22 }} />
+              </button>
+              <textarea
+                ref={inputRef}
               value={text}
               onChange={handleTextChange}
               onKeyDown={handleKeyDown}
@@ -332,8 +395,9 @@ const ChatWindow = ({ chat, index, total }) => {
                 boxShadow: text.trim() ? '0 2px 12px rgba(99,102,241,0.4)' : 'none',
               }}
             >
-              <HiPaperAirplane style={{ width: 16, height: 16, transform: 'rotate(90deg)' }} />
-            </button>
+                <HiPaperAirplane style={{ width: 16, height: 16, transform: 'rotate(90deg)' }} />
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -344,6 +408,9 @@ const ChatWindow = ({ chat, index, total }) => {
 /* ─── Chat Container (renders all open windows) ─────── */
 const ChatContainer = () => {
   const { openChats } = useChat();
+  const location = useLocation();
+
+  if (location.pathname === '/messages') return null;
   if (!openChats.length) return null;
 
   return (

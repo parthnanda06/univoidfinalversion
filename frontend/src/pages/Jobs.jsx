@@ -1,295 +1,421 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getJobs, applyToJob, withdrawApplication, getHRJobs, createJob, updateJob, deleteJob, getApplicants, updateAppStatus } from '../services/api';
+import { getJobs } from '../services/api';
+import { 
+  HiOutlineSearch, HiFilter, HiOutlineLocationMarker, HiOutlineBriefcase, 
+  HiOutlineCurrencyRupee, HiOutlineBookmark, HiSparkles, HiChevronRight, 
+  HiChevronDown, HiOutlineClock, HiOutlineUserGroup, HiOutlineBadgeCheck, HiOutlineDocumentText
+} from 'react-icons/hi';
 import toast from 'react-hot-toast';
-import { HiOutlineBriefcase, HiOutlinePlus, HiOutlineSearch, HiOutlineLocationMarker, HiOutlineClock, HiOutlineX, HiOutlineCheck, HiOutlineEye, HiOutlineTrash, HiOutlinePencil } from 'react-icons/hi';
+import ApplyJobModal from '../components/ApplyJobModal';
 
-const TYPE_COLORS = { internship:'#818cf8', 'full-time':'#34d399', 'part-time':'#fb923c', contract:'#f472b6', freelance:'#facc15' };
-const STATUS_COLORS = { pending:'#64748b', reviewed:'#818cf8', shortlisted:'#34d399', rejected:'#f87171' };
-
-const Badge = ({ text, color }) => (
-  <span style={{ background: `${color}22`, color, border: `1px solid ${color}44`, borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 600 }}>{text}</span>
-);
-
-/* ── Apply Modal ─────────────────────────────── */
-const ApplyModal = ({ job, onClose, onSuccess }) => {
-  const [form, setForm] = useState({ coverLetter: '', resumeLink: '' });
-  const [loading, setLoading] = useState(false);
-  const submit = async () => {
-    setLoading(true);
-    try { await applyToJob(job._id, form); toast.success('Application sent!'); onSuccess(); onClose(); }
-    catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
-    finally { setLoading(false); }
-  };
-  return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }} onClick={onClose}>
-      <div style={{ background:'#0f172a', border:'1px solid rgba(99,102,241,0.3)', borderRadius:20, padding:28, width:'100%', maxWidth:480, animation:'fadeIn 0.2s ease' }} onClick={e=>e.stopPropagation()}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-          <h2 style={{ color:'white', fontWeight:700, fontSize:18 }}>Apply — {job.title}</h2>
-          <button onClick={onClose} style={{ background:'none', border:'none', color:'#64748b', cursor:'pointer' }}><HiOutlineX style={{ width:20, height:20 }} /></button>
-        </div>
-        <p style={{ color:'#64748b', fontSize:13, marginBottom:16 }}>at <strong style={{ color:'#a5b4fc' }}>{job.company}</strong></p>
-        <div style={{ marginBottom:14 }}>
-          <label style={{ color:'#94a3b8', fontSize:12, display:'block', marginBottom:6 }}>Resume / Portfolio Link</label>
-          <input className="input-field" placeholder="https://github.com/you or LinkedIn" value={form.resumeLink} onChange={e=>setForm(f=>({...f,resumeLink:e.target.value}))} />
-        </div>
-        <div style={{ marginBottom:20 }}>
-          <label style={{ color:'#94a3b8', fontSize:12, display:'block', marginBottom:6 }}>Cover Letter <span style={{ color:'#475569' }}>(optional)</span></label>
-          <textarea className="input-field" rows={4} placeholder="Why are you a great fit?" style={{ resize:'none' }} value={form.coverLetter} onChange={e=>setForm(f=>({...f,coverLetter:e.target.value}))} maxLength={1000} />
-          <p style={{ color:'#475569', fontSize:11, textAlign:'right', marginTop:2 }}>{form.coverLetter.length}/1000</p>
-        </div>
-        <button onClick={submit} disabled={loading} style={{ width:'100%', padding:'10px', borderRadius:12, background:'linear-gradient(135deg,#4f46e5,#6366f1)', border:'none', color:'white', fontWeight:600, fontSize:14, cursor:'pointer' }}>
-          {loading ? 'Submitting…' : 'Submit Application'}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-/* ── Post/Edit Job Modal (HR) ─────────────────── */
-const JobFormModal = ({ job, onClose, onSuccess }) => {
-  const empty = { title:'', company:'', location:'Remote', type:'internship', description:'', requirements:'', salary:'', skills:'', deadline:'' };
-  const [form, setForm] = useState(job ? { ...job, skills: job.skills?.join(', ') || '', deadline: job.deadline ? job.deadline.slice(0,10) : '' } : empty);
-  const [loading, setLoading] = useState(false);
-  const s = (k,v) => setForm(f=>({...f,[k]:v}));
-  const submit = async () => {
-    setLoading(true);
-    try {
-      const payload = { ...form, skills: form.skills.split(',').map(s=>s.trim()).filter(Boolean), deadline: form.deadline || null };
-      job ? await updateJob(job._id, payload) : await createJob(payload);
-      toast.success(job ? 'Job updated!' : 'Job posted!');
-      onSuccess(); onClose();
-    } catch(e) { toast.error(e.response?.data?.message || 'Failed'); }
-    finally { setLoading(false); }
-  };
-  return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center', padding:16, overflowY:'auto' }} onClick={onClose}>
-      <div style={{ background:'#0f172a', border:'1px solid rgba(99,102,241,0.3)', borderRadius:20, padding:28, width:'100%', maxWidth:560, animation:'fadeIn 0.2s ease', margin:'auto' }} onClick={e=>e.stopPropagation()}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-          <h2 style={{ color:'white', fontWeight:700, fontSize:18 }}>{job ? 'Edit Job' : 'Post a New Job'}</h2>
-          <button onClick={onClose} style={{ background:'none', border:'none', color:'#64748b', cursor:'pointer' }}><HiOutlineX style={{ width:20, height:20 }} /></button>
-        </div>
-        {[['Job Title','title','e.g. Frontend Developer Intern'],['Company','company','Your company name'],['Location','location','Remote / Mumbai'],['Salary','salary','₹20,000/month or Unpaid']].map(([label,key,ph])=>(
-          <div key={key} style={{ marginBottom:12 }}>
-            <label style={{ color:'#94a3b8', fontSize:12, display:'block', marginBottom:5 }}>{label}</label>
-            <input className="input-field" placeholder={ph} value={form[key]} onChange={e=>s(key,e.target.value)} />
-          </div>
-        ))}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
-          <div>
-            <label style={{ color:'#94a3b8', fontSize:12, display:'block', marginBottom:5 }}>Type</label>
-            <select className="input-field" value={form.type} onChange={e=>s('type',e.target.value)}>
-              {['internship','full-time','part-time','contract','freelance'].map(t=><option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ color:'#94a3b8', fontSize:12, display:'block', marginBottom:5 }}>Deadline</label>
-            <input type="date" className="input-field" value={form.deadline} onChange={e=>s('deadline',e.target.value)} />
-          </div>
-        </div>
-        <div style={{ marginBottom:12 }}>
-          <label style={{ color:'#94a3b8', fontSize:12, display:'block', marginBottom:5 }}>Skills Required <span style={{ color:'#475569' }}>(comma separated)</span></label>
-          <input className="input-field" placeholder="React, Node.js, MongoDB" value={form.skills} onChange={e=>s('skills',e.target.value)} />
-        </div>
-        <div style={{ marginBottom:12 }}>
-          <label style={{ color:'#94a3b8', fontSize:12, display:'block', marginBottom:5 }}>Job Description *</label>
-          <textarea className="input-field" rows={4} style={{ resize:'none' }} maxLength={3000} value={form.description} onChange={e=>s('description',e.target.value)} />
-        </div>
-        <div style={{ marginBottom:20 }}>
-          <label style={{ color:'#94a3b8', fontSize:12, display:'block', marginBottom:5 }}>Requirements</label>
-          <textarea className="input-field" rows={3} style={{ resize:'none' }} maxLength={2000} value={form.requirements} onChange={e=>s('requirements',e.target.value)} />
-        </div>
-        <button onClick={submit} disabled={loading} style={{ width:'100%', padding:'10px', borderRadius:12, background:'linear-gradient(135deg,#4f46e5,#6366f1)', border:'none', color:'white', fontWeight:600, fontSize:14, cursor:'pointer' }}>
-          {loading ? 'Saving…' : job ? 'Update Job' : 'Post Job'}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-/* ── Applicants Drawer (HR) ───────────────────── */
-const ApplicantsDrawer = ({ job, onClose }) => {
-  const [apps, setApps] = useState([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    getApplicants(job._id).then(r=>setApps(r.data)).catch(()=>toast.error('Failed to load')).finally(()=>setLoading(false));
-  }, [job._id]);
-  const changeStatus = async (appId, status) => {
-    try { await updateAppStatus(job._id, appId, status); setApps(prev=>prev.map(a=>a._id===appId?{...a,status}:a)); toast.success('Status updated'); }
-    catch { toast.error('Failed'); }
-  };
-  return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:300, display:'flex', justifyContent:'flex-end' }} onClick={onClose}>
-      <div style={{ width:'100%', maxWidth:520, background:'#0f172a', borderLeft:'1px solid rgba(99,102,241,0.2)', height:'100%', overflowY:'auto', animation:'slideInRight 0.25s ease', padding:24 }} onClick={e=>e.stopPropagation()}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-          <div>
-            <h2 style={{ color:'white', fontWeight:700, fontSize:17 }}>Applicants</h2>
-            <p style={{ color:'#64748b', fontSize:12 }}>{job.title} · {apps.length} applied</p>
-          </div>
-          <button onClick={onClose} style={{ background:'rgba(255,255,255,0.05)', border:'none', borderRadius:8, padding:6, cursor:'pointer', color:'#94a3b8' }}><HiOutlineX style={{ width:18, height:18 }} /></button>
-        </div>
-        {loading ? <div style={{ textAlign:'center', padding:40, color:'#64748b' }}>Loading…</div>
-        : apps.length === 0 ? <div style={{ textAlign:'center', padding:60, color:'#64748b' }}><div style={{ fontSize:40, marginBottom:12 }}>📭</div><p>No applications yet</p></div>
-        : apps.map(app => (
-          <div key={app._id} style={{ background:'rgba(30,41,59,0.6)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:14, padding:16, marginBottom:12 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
-              {app.applicant?.avatar
-                ? <img src={app.applicant.avatar} alt="" style={{ width:44, height:44, borderRadius:12, objectFit:'cover' }} />
-                : <div style={{ width:44, height:44, borderRadius:12, background:'linear-gradient(135deg,#6366f1,#34d399)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:700, fontSize:18 }}>{app.applicant?.name?.charAt(0)}</div>}
-              <div style={{ flex:1 }}>
-                <p style={{ color:'white', fontWeight:600, fontSize:14 }}>{app.applicant?.name}</p>
-                <p style={{ color:'#64748b', fontSize:12 }}>{app.applicant?.email}</p>
-                {app.applicant?.headline && <p style={{ color:'#818cf8', fontSize:11 }}>{app.applicant.headline}</p>}
-              </div>
-              <Badge text={app.status} color={STATUS_COLORS[app.status]} />
-            </div>
-            {app.applicant?.college && <p style={{ color:'#94a3b8', fontSize:12, marginBottom:6 }}>🎓 {app.applicant.college} · {app.applicant.branch} · {app.applicant.year}</p>}
-            {app.applicant?.skills?.length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginBottom:10 }}>{app.applicant.skills.slice(0,6).map(s=><span key={s} style={{ background:'rgba(99,102,241,0.15)', color:'#a5b4fc', fontSize:10, padding:'2px 8px', borderRadius:999 }}>{s}</span>)}</div>}
-            {app.resumeLink && <a href={app.resumeLink} target="_blank" rel="noreferrer" style={{ color:'#818cf8', fontSize:12, display:'block', marginBottom:8 }}>🔗 View Resume / Portfolio</a>}
-            {app.coverLetter && <p style={{ color:'#94a3b8', fontSize:12, fontStyle:'italic', marginBottom:10, borderLeft:'2px solid #334155', paddingLeft:10 }}>"{app.coverLetter}"</p>}
-            <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-              {['pending','reviewed','shortlisted','rejected'].map(s=>(
-                <button key={s} onClick={()=>changeStatus(app._id,s)} style={{ padding:'4px 10px', borderRadius:8, border:`1px solid ${STATUS_COLORS[s]}44`, background: app.status===s ? `${STATUS_COLORS[s]}22` : 'transparent', color: STATUS_COLORS[s], fontSize:11, fontWeight:600, cursor:'pointer', transition:'all 0.15s' }}>{s}</button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-/* ── Job Card ─────────────────────────────────── */
-const JobCard = ({ job, isHR, onApply, onWithdraw, onEdit, onDelete, onViewApplicants }) => {
-  const deadline = job.deadline ? new Date(job.deadline) : null;
-  const expired  = deadline && deadline < new Date();
-  return (
-    <div style={{ background:'rgba(15,23,42,0.8)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:18, padding:20, transition:'all 0.2s', cursor:'default' }}
-      onMouseEnter={e=>e.currentTarget.style.borderColor='rgba(99,102,241,0.3)'}
-      onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(255,255,255,0.06)'}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:12 }}>
-        <div style={{ flex:1, minWidth:0 }}>
-          <h3 style={{ color:'white', fontWeight:700, fontSize:16, marginBottom:4 }}>{job.title}</h3>
-          <p style={{ color:'#818cf8', fontWeight:600, fontSize:13 }}>{job.company}</p>
-        </div>
-        <Badge text={job.type} color={TYPE_COLORS[job.type] || '#64748b'} />
-      </div>
-      <div style={{ display:'flex', flexWrap:'wrap', gap:12, marginBottom:12, fontSize:12, color:'#64748b' }}>
-        <span><HiOutlineLocationMarker style={{ display:'inline', marginRight:4 }} />{job.location}</span>
-        {job.salary && <span>💰 {job.salary}</span>}
-        {deadline && <span style={{ color: expired ? '#f87171' : '#64748b' }}><HiOutlineClock style={{ display:'inline', marginRight:4 }} />{expired ? 'Expired' : `Closes ${deadline.toLocaleDateString()}`}</span>}
-        {isHR && <span style={{ color:'#818cf8' }}>👥 {job.applicantCount ?? job.applications?.length ?? 0} applicants</span>}
-      </div>
-      {job.skills?.length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:12 }}>{job.skills.map(s=><span key={s} style={{ background:'rgba(99,102,241,0.12)', color:'#a5b4fc', fontSize:11, padding:'2px 8px', borderRadius:999 }}>{s}</span>)}</div>}
-      <p style={{ color:'#94a3b8', fontSize:13, lineHeight:1.6, marginBottom:14 }}>{job.description.slice(0,160)}{job.description.length>160?'…':''}</p>
-      <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-        {isHR ? (<>
-          <button onClick={()=>onViewApplicants(job)} style={{ flex:1, padding:'8px', borderRadius:10, background:'rgba(99,102,241,0.15)', border:'1px solid rgba(99,102,241,0.3)', color:'#a5b4fc', fontSize:12, fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}><HiOutlineEye style={{ width:14,height:14 }} />Applicants</button>
-          <button onClick={()=>onEdit(job)} style={{ padding:'8px 12px', borderRadius:10, background:'transparent', border:'1px solid rgba(255,255,255,0.1)', color:'#94a3b8', fontSize:12, cursor:'pointer' }}><HiOutlinePencil style={{ width:14,height:14 }} /></button>
-          <button onClick={()=>onDelete(job._id)} style={{ padding:'8px 12px', borderRadius:10, background:'transparent', border:'1px solid rgba(248,113,113,0.2)', color:'#f87171', fontSize:12, cursor:'pointer' }}><HiOutlineTrash style={{ width:14,height:14 }} /></button>
-        </>) : job.hasApplied ? (<>
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'8px 14px', borderRadius:10, background:'rgba(52,211,153,0.12)', border:'1px solid rgba(52,211,153,0.35)', color:'#34d399', fontSize:12, fontWeight:700 }}><HiOutlineCheck style={{ width:14, height:14 }} /> Applied</span>
-          <button onClick={()=>onWithdraw(job._id)} style={{ padding:'8px 14px', borderRadius:10, background:'transparent', border:'1px solid rgba(248,113,113,0.25)', color:'#f87171', fontSize:12, fontWeight:500, cursor:'pointer' }}>Withdraw</button>
-        </>) : (
-          <button onClick={()=>onApply(job)} disabled={expired||!job.isActive} style={{ padding:'8px 18px', borderRadius:10, background: expired||!job.isActive ? 'rgba(51,65,85,0.5)' : 'linear-gradient(135deg,#4f46e5,#6366f1)', border:'none', color:'white', fontSize:12, fontWeight:600, cursor: expired||!job.isActive ? 'not-allowed' : 'pointer' }}>{expired ? 'Expired' : !job.isActive ? 'Closed' : 'Apply Now'}</button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-/* ── Main Page ────────────────────────────────── */
-export default function Jobs() {
+const Jobs = () => {
   const { user } = useAuth();
-  const isHR = user?.role === 'hr' || user?.role === 'admin';
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  
+  // Modal State
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
 
-  const [jobs, setJobs]               = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState('');
-  const [typeFilter, setTypeFilter]   = useState('');
-  const [applyJob, setApplyJob]       = useState(null);
-  const [formJob, setFormJob]         = useState(null);  // null=closed, {}=new, job=edit
-  const [viewApps, setViewApps]       = useState(null);
+  // Mock initial data fetch
+  useEffect(() => {
+    // Ideally this would fetch from backend, but keeping this simple based on mock
+    getJobs()
+      .then((res) => {
+        setJobs(res.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, []);
 
-  const fetchJobs = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = isHR ? await getHRJobs() : await getJobs({ q: search, type: typeFilter });
-      setJobs(isHR ? data : data.jobs || []);
-    } catch { toast.error('Failed to load jobs'); }
-    finally { setLoading(false); }
-  }, [isHR, search, typeFilter]);
-
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
-
-  const handleWithdraw = async (id) => {
-    try { await withdrawApplication(id); toast.success('Application withdrawn'); fetchJobs(); }
-    catch(e) { toast.error(e.response?.data?.message || 'Failed'); }
+  const handleApply = (job) => {
+    setSelectedJob(job);
+    setIsApplyModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this job posting?')) return;
-    try { await deleteJob(id); toast.success('Job deleted'); fetchJobs(); }
-    catch { toast.error('Failed to delete'); }
-  };
+  // Dummy Data for the mockup presentation
+  const recommendedJobs = [
+    { id: 1, company: 'TechNova', logo: 'T', role: 'AI/ML Intern', type: 'Remote • Internship', salary: '₹15k - ₹25k / month', match: '92% Match', tags: ['Python', 'Machine Learning', 'PyTorch'] },
+    { id: 2, company: 'CodeStudio', logo: '</>', role: 'Frontend Developer Intern', type: 'Ahmedabad • Internship', salary: '₹10k - ₹18k / month', match: '88% Match', tags: ['React', 'JavaScript', 'Tailwind CSS'] },
+    { id: 3, company: 'DataMinds', logo: 'D', role: 'Data Analyst Intern', type: 'Hybrid • Internship', salary: '₹12k - ₹20k / month', match: '85% Match', tags: ['Python', 'SQL', 'Excel'] },
+  ];
+
+  const closingSoon = [
+    { id: 1, logo: 'G', color: 'bg-emerald-500', company: 'GrowX', role: 'Marketing Intern', deadline: 'Tomorrow' },
+    { id: 2, logo: 'N', color: 'bg-gray-900', company: 'Nexera', role: 'Backend Intern', deadline: '2 days left' },
+    { id: 3, logo: 'B', color: 'bg-purple-600', company: 'ByteFlow', role: 'UI/UX Designer Intern', deadline: '3 days left' },
+    { id: 4, logo: 'A', color: 'bg-blue-600', company: 'Analytics Vidhya', role: 'ML Research Intern', deadline: '3 days left' },
+  ];
+
+  const categories = [
+    { name: 'Internships', count: '124 open positions', icon: <HiOutlineBriefcase className="text-[#5c4dff]" />, color: 'bg-[#5c4dff]/10 text-[#5c4dff]' },
+    { name: 'Full-time Jobs', count: '86 open positions', icon: <HiOutlineBadgeCheck className="text-emerald-500" />, color: 'bg-emerald-50 text-emerald-600' },
+    { name: 'Part-time Jobs', count: '37 open positions', icon: <HiOutlineClock className="text-orange-500" />, color: 'bg-orange-50 text-orange-600' },
+    { name: 'Remote Jobs', count: '58 open positions', icon: <HiOutlineLocationMarker className="text-blue-500" />, color: 'bg-blue-50 text-blue-600' },
+    { name: 'Research', count: '23 open positions', icon: <HiOutlineDocumentText className="text-purple-500" />, color: 'bg-purple-50 text-purple-600' },
+  ];
+
+  const savedJobs = [
+    { id: 1, logo: 'D', logoBg: 'bg-blue-600', company: 'DevCraft', role: 'Full Stack Developer Intern', type: 'Remote • Internship', tags: ['MERN', 'JavaScript', 'Node.js'], savedTime: 'Saved 2 days ago' },
+    { id: 2, logo: 'P', logoBg: 'bg-orange-500', company: 'Pycube', role: 'Python Developer Intern', type: 'Ahmedabad • Internship', tags: ['Python', 'Django', 'REST API'], savedTime: 'Saved 5 days ago' },
+    { id: 3, logo: 'S', logoBg: 'bg-purple-600', company: 'StartupX', role: 'Product Management Intern', type: 'Remote • Internship', tags: ['Product', 'Analytics', 'Research'], savedTime: 'Saved 1 week ago' },
+  ];
 
   return (
-    <div style={{ padding:'2rem', maxWidth:860, margin:'0 auto' }} className="animate-fade-in">
-      {/* Header */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
+    <div style={{ backgroundColor: '#f0f2f5' }} className="min-h-screen w-full pb-20 sm:pb-0">
+      <div className="p-4 sm:p-6 lg:p-10 max-w-[1400px] mx-auto animate-fade-in">
+      
+      {/* Hero Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 sm:mb-8 gap-6">
         <div>
-          <h1 style={{ fontSize:'1.75rem', fontWeight:700, color:'white', marginBottom:4 }}>
-            {isHR ? '💼 My Job Postings' : '🎯 Job Board'}
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            Opportunities for you 🎯
           </h1>
-          <p style={{ color:'#64748b', fontSize:14 }}>{isHR ? 'Manage your listings and review applicants' : 'Find internships & jobs — apply in one click'}</p>
+          <p className="text-xs sm:text-sm font-medium text-gray-500">
+            Find internships, jobs, and more — all in one place
+          </p>
         </div>
-        {isHR && (
-          <button onClick={()=>setFormJob({})} style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 18px', borderRadius:12, background:'linear-gradient(135deg,#4f46e5,#6366f1)', border:'none', color:'white', fontWeight:600, fontSize:13, cursor:'pointer', boxShadow:'0 4px 16px rgba(99,102,241,0.4)' }}>
-            <HiOutlinePlus style={{ width:16,height:16 }} /> Post Job
-          </button>
-        )}
+        
+        {/* Right side illustration (mocked with div) */}
+        <div className="hidden md:flex items-center gap-4 relative w-48 h-24">
+           {/* Briefcase Icon */}
+           <div className="absolute right-12 bottom-0 w-24 h-20 bg-gradient-to-br from-[#5c4dff] to-blue-500 rounded-2xl shadow-xl flex items-center justify-center -rotate-6 z-10">
+              <div className="w-8 h-2 bg-white/20 rounded-full absolute top-2"></div>
+              <div className="w-24 h-px bg-white/20"></div>
+           </div>
+           {/* CV Icon */}
+           <div className="absolute right-0 bottom-2 w-16 h-22 bg-white rounded-xl shadow-lg border border-gray-100 p-2 rotate-12 z-0 flex flex-col gap-1.5 justify-center">
+              <div className="w-10 h-3 bg-gray-100 rounded-sm"></div>
+              <div className="w-full h-1 bg-gray-100 rounded-full"></div>
+              <div className="w-3/4 h-1 bg-gray-100 rounded-full"></div>
+              <div className="w-full h-1 bg-gray-100 rounded-full"></div>
+              <div className="text-[10px] font-black text-[#5c4dff] text-center mt-auto">CV</div>
+           </div>
+        </div>
       </div>
 
-      {/* Filters (students only) */}
-      {!isHR && (
-        <div style={{ display:'flex', gap:10, marginBottom:20, flexWrap:'wrap' }}>
-          <div style={{ position:'relative', flex:1, minWidth:200 }}>
-            <HiOutlineSearch style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', color:'#64748b', width:16, height:16 }} />
-            <input className="input-field" style={{ paddingLeft:38 }} placeholder="Search jobs, skills, companies…" value={search} onChange={e=>setSearch(e.target.value)} />
+      {/* Search & Filters */}
+      <div className="mb-10">
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex-1 relative">
+            <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text" 
+              className="w-full bg-white border border-gray-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5c4dff]/20 focus:border-[#5c4dff] transition-all shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]" 
+              placeholder="Search jobs, skills, companies..."
+              value={search} onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
-          <select className="input-field" style={{ width:'auto', minWidth:140 }} value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}>
-            <option value="">All Types</option>
-            {['internship','full-time','part-time','contract','freelance'].map(t=><option key={t} value={t}>{t}</option>)}
-          </select>
+          <button className="bg-white border border-gray-200 rounded-2xl py-3.5 px-6 text-sm font-bold text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] transition-colors whitespace-nowrap">
+             <HiFilter className="w-4 h-4" /> All Filters <HiChevronDown className="w-4 h-4 text-gray-400 ml-1" />
+          </button>
         </div>
-      )}
+        
+        {/* Skills Pills */}
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
+           {['AI/ML', 'Python', 'React', 'Remote', 'Full-time', 'Internship'].map(skill => (
+              <button key={skill} className="px-4 py-1.5 rounded-full border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:border-[#5c4dff] hover:text-[#5c4dff] transition-colors whitespace-nowrap shadow-sm">
+                 {skill}
+              </button>
+           ))}
+           <button className="px-4 py-1.5 rounded-full text-[#5c4dff] font-bold text-xs hover:bg-[#5c4dff]/5 transition-colors whitespace-nowrap">
+              + Add skills
+           </button>
+        </div>
+      </div>
 
-      {/* List */}
-      {loading ? (
-        <div style={{ display:'grid', gap:14, gridTemplateColumns:'repeat(auto-fill,minmax(380px,1fr))' }}>
-          {[1,2,3].map(i=><div key={i} style={{ background:'rgba(30,41,59,0.4)', borderRadius:18, height:200, animation:'pulse 1.5s ease infinite' }} />)}
-        </div>
-      ) : jobs.length === 0 ? (
-        <div style={{ textAlign:'center', padding:'4rem 0' }}>
-          <div style={{ fontSize:52, marginBottom:12 }}>💼</div>
-          <p style={{ color:'white', fontWeight:600, fontSize:18, marginBottom:8 }}>{isHR ? 'No jobs posted yet' : 'No jobs found'}</p>
-          <p style={{ color:'#64748b', fontSize:14 }}>{isHR ? 'Click "Post Job" to create your first listing' : 'Try different keywords or check back later'}</p>
-        </div>
-      ) : (
-        <div style={{ display:'grid', gap:14, gridTemplateColumns:'repeat(auto-fill,minmax(380px,1fr))' }}>
-          {jobs.map(job=>(
-            <JobCard key={job._id} job={job} isHR={isHR}
-              onApply={setApplyJob} onWithdraw={handleWithdraw}
-              onEdit={j=>setFormJob(j)} onDelete={handleDelete}
-              onViewApplicants={setViewApps} />
-          ))}
-        </div>
-      )}
+      {/* Recommended for you */}
+      <div className="mb-12">
+         <div className="flex items-center justify-between mb-6">
+            <h2 className="text-[15px] font-bold text-gray-900">Recommended for you</h2>
+            <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all →</button>
+         </div>
+         
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recommendedJobs.map(job => (
+               <div key={job.id} className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group flex flex-col relative">
+                  <button className="absolute top-6 right-6 text-gray-300 hover:text-gray-500 transition-colors">
+                     <HiOutlineBookmark className="w-5 h-5" />
+                  </button>
+                  
+                  <div className="flex items-center gap-3 mb-5">
+                     <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
+                        {job.logo}
+                     </div>
+                     <div>
+                        <h3 className="text-sm font-bold text-gray-900">{job.company}</h3>
+                        <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 tracking-wide uppercase mt-1 inline-block">
+                           {job.match}
+                        </span>
+                     </div>
+                  </div>
+                  
+                  <h4 className="text-[15px] font-bold text-gray-900 mb-2">{job.role}</h4>
+                  
+                  <div className="space-y-1.5 mb-5">
+                     <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1.5">
+                        <HiOutlineLocationMarker className="w-3.5 h-3.5 text-gray-400" /> {job.type}
+                     </p>
+                     <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1.5">
+                        <HiOutlineCurrencyRupee className="w-3.5 h-3.5 text-gray-400" /> {job.salary}
+                     </p>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mb-6">
+                     {job.tags.map(tag => (
+                        <span key={tag} className="text-[10px] font-bold text-[#5c4dff] bg-[#5c4dff]/5 px-2.5 py-1 rounded-md border border-[#5c4dff]/10">
+                           {tag}
+                        </span>
+                     ))}
+                  </div>
+                  
+                  <div className="mt-auto grid grid-cols-2 gap-3">
+                     <button className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 font-bold text-[11px] hover:bg-gray-50 transition-colors">
+                        View Details
+                     </button>
+                     <button 
+                        onClick={() => handleApply(job)}
+                        className="w-full py-2.5 rounded-xl bg-[#5c4dff] hover:bg-[#4a3ddf] text-white font-bold text-[11px] shadow-md shadow-[#5c4dff]/20 transition-all"
+                     >
+                        Apply
+                     </button>
+                  </div>
+               </div>
+            ))}
+         </div>
+      </div>
 
-      {/* Modals */}
-      {applyJob  && <ApplyModal  job={applyJob}  onClose={()=>setApplyJob(null)}  onSuccess={fetchJobs} />}
-      {formJob !== null && <JobFormModal job={Object.keys(formJob).length?formJob:null} onClose={()=>setFormJob(null)} onSuccess={fetchJobs} />}
-      {viewApps  && <ApplicantsDrawer job={viewApps} onClose={()=>setViewApps(null)} />}
+      {/* AI Opportunity Match */}
+      <div className="bg-gradient-to-r from-[#f4f3ff] to-[#ebeaff] rounded-[24px] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 mb-12 border border-[#5c4dff]/10 shadow-sm relative overflow-hidden group">
+         <div className="absolute right-10 -top-10 w-40 h-40 bg-[#5c4dff]/5 rounded-full blur-2xl group-hover:scale-110 transition-transform"></div>
+         
+         <div className="flex items-center gap-5 relative z-10">
+            <div className="w-12 h-12 rounded-2xl bg-white shadow-md flex items-center justify-center shrink-0 border border-[#5c4dff]/10">
+               <HiSparkles className="w-6 h-6 text-[#5c4dff] animate-pulse" />
+            </div>
+            <div>
+               <h3 className="text-sm font-black text-[#5c4dff] mb-1 flex items-center gap-1.5">
+                  AI Opportunity Match <HiSparkles className="text-orange-400 w-3 h-3" />
+               </h3>
+               <p className="text-[11px] font-medium text-gray-600 max-w-sm leading-relaxed">
+                  We analyzed your profile and found <strong className="text-gray-900">8 new opportunities</strong> that are a strong match for you.
+               </p>
+            </div>
+         </div>
+         
+         <button className="relative z-10 w-full sm:w-auto bg-[#5c4dff] hover:bg-[#4a3ddf] text-white py-3 px-6 rounded-xl font-bold text-xs shadow-md shadow-[#5c4dff]/20 transition-all hover:-translate-y-0.5 whitespace-nowrap">
+            View Matches →
+         </button>
+      </div>
+
+      {/* Closing Soon */}
+      <div className="mb-12">
+         <div className="flex items-center justify-between mb-6">
+            <h2 className="text-[15px] font-bold text-gray-900">Closing soon</h2>
+            <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all →</button>
+         </div>
+         
+         <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+            {closingSoon.map((job, i) => (
+               <div key={job.id} className="min-w-[240px] bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shrink-0 shadow-sm ${job.color}`}>
+                     {job.logo}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                     <h4 className="text-[11px] font-bold text-gray-500 mb-0.5 truncate">{job.company}</h4>
+                     <h3 className="text-xs font-bold text-gray-900 truncate group-hover:text-[#5c4dff] transition-colors">{job.role}</h3>
+                     <p className="text-[9px] font-bold text-red-500 mt-1 flex items-center gap-1">
+                        <HiOutlineClock className="w-3 h-3" /> Deadline: {job.deadline}
+                     </p>
+                  </div>
+                  <button className="text-gray-300 hover:text-gray-500 shrink-0">
+                     <HiOutlineBookmark className="w-4 h-4" />
+                  </button>
+               </div>
+            ))}
+            <button className="min-w-[40px] h-auto bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-[#5c4dff] hover:shadow-md transition-all">
+               <HiChevronRight className="w-5 h-5" />
+            </button>
+         </div>
+      </div>
+
+      {/* Explore by Category */}
+      <div className="mb-12">
+         <h2 className="text-[15px] font-bold text-gray-900 mb-6">Explore by category</h2>
+         <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+            {categories.map((cat, i) => (
+               <div key={i} className="min-w-[200px] bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group cursor-pointer">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${cat.color} group-hover:scale-110 transition-transform`}>
+                     {cat.icon}
+                  </div>
+                  <div>
+                     <h3 className="text-xs font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors">{cat.name}</h3>
+                     <p className="text-[9px] font-medium text-gray-400 mt-0.5">{cat.count}</p>
+                  </div>
+               </div>
+            ))}
+            <button className="min-w-[40px] h-auto bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-[#5c4dff] hover:shadow-md transition-all">
+               <HiChevronRight className="w-5 h-5" />
+            </button>
+         </div>
+      </div>
+
+      {/* From your communities */}
+      <div className="mb-12">
+         <div className="flex items-center justify-between mb-6">
+            <h2 className="text-[15px] font-bold text-gray-900">From your communities</h2>
+            <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all →</button>
+         </div>
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {['AI/ML Students', 'Web Developers', 'Hackathon Lovers'].map((comm, i) => {
+               const counts = [14, 8, 5];
+               return (
+                  <div key={i} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center gap-4 cursor-pointer group">
+                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 border border-blue-100 flex items-center justify-center shrink-0">
+                        <HiOutlineUserGroup className="w-5 h-5" />
+                     </div>
+                     <div className="flex-1 min-w-0 border-r border-gray-100 pr-4">
+                        <h3 className="text-xs font-bold text-gray-900 truncate group-hover:text-[#5c4dff] transition-colors">{comm}</h3>
+                        <p className="text-[9px] font-medium text-gray-400">Community</p>
+                     </div>
+                     <div className="flex items-center justify-between w-24 shrink-0">
+                        <p className="text-[9px] font-medium text-gray-500 leading-tight">
+                           <strong className="text-gray-900">{counts[i]} members</strong> saved this opportunity
+                        </p>
+                        <HiChevronRight className="w-3 h-3 text-gray-400" />
+                     </div>
+                  </div>
+               )
+            })}
+         </div>
+      </div>
+
+      {/* Bottom Layout Split */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+         
+         {/* Left: Saved Opportunities */}
+         <div className="lg:col-span-2">
+            <div className="flex items-center justify-between mb-6">
+               <h2 className="text-[15px] font-bold text-gray-900">Saved opportunities</h2>
+               <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all →</button>
+            </div>
+            
+            <div className="bg-white border border-gray-100 rounded-[24px] shadow-sm divide-y divide-gray-50">
+               {savedJobs.map(job => (
+                  <div key={job.id} className="p-5 flex flex-col sm:flex-row gap-5 hover:bg-gray-50 transition-colors group">
+                     <div className={`w-12 h-12 rounded-xl text-white font-bold text-lg flex items-center justify-center shrink-0 ${job.logoBg}`}>
+                        {job.logo}
+                     </div>
+                     
+                     <div className="flex-1 min-w-0">
+                        <h3 className="text-[13px] font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors">{job.role}</h3>
+                        <p className="text-xs font-medium text-gray-500 mb-1">{job.company}</p>
+                        <p className="text-[10px] text-gray-400 flex items-center gap-1.5 mb-3">
+                           <HiOutlineLocationMarker className="w-3 h-3" /> {job.type}
+                        </p>
+                        <div className="flex gap-2">
+                           {job.tags.map(tag => (
+                              <span key={tag} className="text-[9px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                 {tag}
+                              </span>
+                           ))}
+                        </div>
+                     </div>
+                     
+                     <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between shrink-0">
+                        <p className="text-[10px] font-medium text-gray-400">{job.savedTime}</p>
+                        <div className="flex items-center gap-2">
+                           <button className="text-[#5c4dff] hover:text-[#4a3ddf] transition-colors"><HiOutlineBookmark className="w-5 h-5 fill-current" /></button>
+                           <button className="text-gray-300 hover:text-gray-500">⋮</button>
+                        </div>
+                     </div>
+                  </div>
+               ))}
+               <div className="p-4 text-center">
+                  <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all saved →</button>
+               </div>
+            </div>
+         </div>
+
+         {/* Right: Sidebars */}
+         <div className="space-y-6">
+            
+            {/* Quick Apply Card */}
+            <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)]">
+               <div className="flex items-start gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-full bg-[#5c4dff]/10 flex items-center justify-center shrink-0">🚀</div>
+                  <div>
+                     <h3 className="text-[13px] font-black text-gray-900">Quick Apply with <span className="text-[#5c4dff]">UniVoid</span></h3>
+                     <p className="text-[10px] font-medium text-gray-500 mt-1">Apply in one click using your UniVoid profile</p>
+                  </div>
+               </div>
+               
+               <div className="space-y-3 mb-6">
+                  {['Profile', 'Resume', 'Skills', 'Education'].map((item, i) => (
+                     <div key={item} className="flex items-center justify-between text-xs font-medium text-gray-700">
+                        <span className="flex items-center gap-2">✓ {item}</span>
+                        <div className="w-4 h-4 rounded-full border-2 border-emerald-500 flex items-center justify-center">
+                           <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+               
+               <button className="w-full py-2.5 rounded-xl border border-[#5c4dff]/20 bg-[#5c4dff]/5 text-[#5c4dff] hover:bg-[#5c4dff]/10 font-bold text-[11px] transition-colors">
+                  Create / Upload Resume
+               </button>
+            </div>
+
+            {/* Recruiter Promo */}
+            <div className="bg-[#f8f9ff] border border-blue-100 rounded-[24px] p-6 relative overflow-hidden group">
+               <h3 className="text-[13px] font-black text-gray-900 mb-2 relative z-10">Are you a recruiter?</h3>
+               <p className="text-[10px] font-medium text-gray-600 mb-5 max-w-[140px] leading-relaxed relative z-10">
+                  Post jobs and connect with talented students.
+               </p>
+               <button className="bg-[#5c4dff] hover:bg-[#4a3ddf] text-white py-2 px-5 rounded-xl font-bold text-[11px] shadow-sm transition-colors relative z-10">
+                  Post a Job →
+               </button>
+               
+               <div className="absolute right-0 bottom-0 opacity-50 group-hover:opacity-100 transition-opacity">
+                  <div className="w-24 h-24 bg-blue-100 rounded-tl-[40px] flex items-end justify-end p-3">
+                     <div className="w-12 h-10 bg-[#5c4dff]/20 rounded-lg border-2 border-[#5c4dff]/30"></div>
+                  </div>
+               </div>
+            </div>
+            
+         </div>
+      </div>
+      
+      {/* Footer Banner */}
+      <div className="bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+         <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-[#5c4dff]/10 rounded-xl text-[#5c4dff] flex items-center justify-center text-xl shrink-0">
+               📄
+            </div>
+            <div>
+               <h3 className="text-[13px] font-black text-gray-900 mb-0.5">Build a better profile, get better opportunities</h3>
+               <p className="text-[11px] font-medium text-gray-500">Complete your profile to get matched with the best opportunities.</p>
+            </div>
+         </div>
+         <button className="w-full sm:w-auto bg-white border border-gray-200 text-[#5c4dff] hover:bg-gray-50 py-2.5 px-6 rounded-xl font-bold text-[11px] transition-colors whitespace-nowrap shadow-sm">
+            Improve Profile →
+         </button>
+      </div>
+
+      </div>
+      
+      {/* Apply Job Modal */}
+      <ApplyJobModal 
+        isOpen={isApplyModalOpen} 
+        onClose={() => setIsApplyModalOpen(false)} 
+        job={selectedJob} 
+      />
     </div>
   );
-}
+};
+
+export default Jobs;

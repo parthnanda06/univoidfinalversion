@@ -1,0 +1,327 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  email     String   @unique
+  password  String?
+  provider  String   @default("local") // 'local', 'google', 'microsoft'
+  providerId String?
+  role      String   @default("student") // 'student', 'admin', 'hr'
+  college   String   @default("")
+  branch    String   @default("")
+  year      String   @default("")
+  bio       String   @default("") @db.VarChar(500)
+  avatar    String   @default("")
+  
+  headline  String   @default("") @db.VarChar(120)
+  skills    String[]
+  complexSkills Json?
+  links     Json?
+  location  String   @default("")
+  openToWork Boolean @default(false)
+  publicKey Json?
+  privateKey Json?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  joinedCommunities Community[] @relation("CommunityMembers")
+  createdCommunities Community[] @relation("CommunityCreator")
+  
+  followers User[] @relation("UserFollowers")
+  following User[] @relation("UserFollowers")
+  
+  connections User[] @relation("UserConnections")
+  connectedTo User[] @relation("UserConnections")
+
+  posts     Post[]
+  comments  Comment[]
+  replies   Reply[]
+  
+  createdEvents Event[] @relation("EventCreator")
+  registeredEvents Event[] @relation("EventRegistrations")
+  
+  postedJobs Job[]
+  applications Application[]
+  
+  uploadedNotes Note[]
+  
+  sentMessages Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  
+  aiChats   AIChat[]
+  
+  sentRequests ConnectionRequest[] @relation("SentRequests")
+  receivedRequests ConnectionRequest[] @relation("ReceivedRequests")
+
+  postLikes Post[] @relation("PostLikes")
+  commentLikes Comment[] @relation("CommentLikes")
+  replyLikes Reply[] @relation("ReplyLikes")
+
+  experiences Experience[]
+  projectsList Project[]
+  achievements Achievement[]
+  activities Activity[]
+}
+
+model Community {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(100)
+  description String   @default("") @db.VarChar(500)
+  category    String   @default("General")
+  icon        String   @default("💬")
+  
+  creatorId   String
+  creator     User     @relation("CommunityCreator", fields: [creatorId], references: [id])
+  
+  memberCount Int      @default(1)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  members     User[]   @relation("CommunityMembers")
+  posts       Post[]
+}
+
+model Post {
+  id          String   @id @default(uuid())
+  content     String   @db.VarChar(5000)
+  
+  communityId String?
+  community   Community? @relation(fields: [communityId], references: [id])
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  mediaUrl    String?
+  mediaType   String?
+  
+  likeCount   Int      @default(0)
+  likes       User[]   @relation("PostLikes")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  comments    Comment[]
+}
+
+model Comment {
+  id          String   @id @default(uuid())
+  text        String
+  
+  postId      String
+  post        Post     @relation(fields: [postId], references: [id])
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  likeCount   Int      @default(0)
+  likes       User[]   @relation("CommentLikes")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  replies     Reply[]
+}
+
+model Reply {
+  id          String   @id @default(uuid())
+  text        String
+  
+  commentId   String
+  comment     Comment  @relation(fields: [commentId], references: [id])
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  likeCount   Int      @default(0)
+  likes       User[]   @relation("ReplyLikes")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ConnectionRequest {
+  id          String   @id @default(uuid())
+  fromId      String
+  from        User     @relation("SentRequests", fields: [fromId], references: [id])
+  
+  toId        String
+  to          User     @relation("ReceivedRequests", fields: [toId], references: [id])
+  
+  status      String   @default("pending") // 'pending', 'accepted', 'declined'
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([fromId, toId])
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String   @db.VarChar(200)
+  description String   @default("")
+  date        DateTime
+  endDate     DateTime?
+  location    String   @default("Online")
+  link        String   @default("")
+  category    String   @default("General")
+  
+  creatorId   String
+  createdBy   User     @relation("EventCreator", fields: [creatorId], references: [id])
+  
+  registrationCount Int @default(0)
+  registrations User[]  @relation("EventRegistrations")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Job {
+  id          String   @id @default(uuid())
+  title       String   @db.VarChar(120)
+  company     String   @db.VarChar(100)
+  location    String   @default("Remote")
+  type        String   @default("internship")
+  description String   @db.VarChar(3000)
+  requirements String  @default("") @db.VarChar(2000)
+  skills      String[]
+  salary      String   @default("")
+  deadline    DateTime?
+  isActive    Boolean  @default(true)
+  
+  posterId    String
+  postedBy    User     @relation(fields: [posterId], references: [id])
+  
+  applications Application[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Application {
+  id          String   @id @default(uuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id])
+  
+  applicantId String
+  applicant   User     @relation(fields: [applicantId], references: [id])
+  
+  coverLetter String   @default("") @db.VarChar(1000)
+  resumeLink  String   @default("")
+  status      String   @default("pending")
+  
+  appliedAt   DateTime @default(now())
+}
+
+model Note {
+  id          String   @id @default(uuid())
+  title       String   @db.VarChar(200)
+  subject     String
+  description String   @default("")
+  college     String   @default("")
+  fileUrl     String   @default("")
+  fileType    String   @default("link")
+  
+  uploaderId  String
+  uploadedBy  User     @relation(fields: [uploaderId], references: [id])
+  
+  downloads   Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  conversationId String
+  
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  
+  encryptedText String
+  iv          String
+  encryptedKeyForReceiver String
+  encryptedKeyForSender String
+  read        Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AIChat {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  title       String   @default("New Chat")
+  messages    Json
+  isPinned    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Experience {
+  id          String   @id @default(uuid())
+  company     String
+  role        String
+  description String
+  startDate   DateTime
+  endDate     DateTime?
+  current     Boolean  @default(false)
+  type        String   @default("Full-time")
+  techStack   String[]
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  subtitle    String?
+  description String
+  techStack   String[]
+  startDate   DateTime?
+  status      String   @default("Completed")
+  link        String?
+  github      String?
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  title       String
+  event       String?
+  date        DateTime?
+  description String
+  category    String   @default("Milestone")
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  action      String
+  context     String?
+  icon        String?
+  date        DateTime @default(now())
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+}

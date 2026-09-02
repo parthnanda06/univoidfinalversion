@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const http = require('http');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
-const connectDB = require('./config/db');
+
 
 dotenv.config();
 
@@ -18,8 +18,7 @@ const io = new Server(server, {
   },
 });
 
-// Connect to MongoDB
-connectDB();
+// Removed MongoDB connection
 
 // Middleware
 app.use(cors());
@@ -29,32 +28,60 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
-app.use('/api/notes', require('./routes/notes'));
 app.use('/api/communities', require('./routes/communities'));
-app.use('/api/events', require('./routes/events'));
 app.use('/api/jobs', require('./routes/jobs'));
+app.use('/api/events', require('./routes/events'));
+app.use('/api/notes', require('./routes/notes'));
+app.use('/api/posts', require('./routes/posts'));
 app.use('/api/chat', require('./routes/chat'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+let dashboardCache = { data: null, lastFetch: 0 };
+const CACHE_TTL = 30000; // 30 seconds
+
 // Dashboard feed endpoint
 app.get('/api/dashboard', async (req, res) => {
   try {
-    const Note = require('./models/Note');
-    const Post = require('./models/Post');
-    const Event = require('./models/Event');
+    if (Date.now() - dashboardCache.lastFetch < CACHE_TTL && dashboardCache.data) {
+      return res.json(dashboardCache.data);
+    }
+
+    const prisma = require('./prismaClient');
 
     const [latestNotes, recentPosts, upcomingEvents] = await Promise.all([
-      Note.find().populate('uploadedBy', 'name').sort({ createdAt: -1 }).limit(6),
-      Post.find().populate('author', 'name avatar').populate('community', 'name icon').sort({ createdAt: -1 }).limit(6),
-      Event.find({ date: { $gte: new Date() } }).sort({ date: 1 }).limit(6),
+      prisma.note.findMany({
+        include: { uploadedBy: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 6
+      }),
+      prisma.post.findMany({
+        include: { 
+          author: { select: { name: true, avatar: true } },
+          community: { select: { name: true, icon: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 6
+      }),
+      prisma.event.findMany({
+        where: { date: { gte: new Date() } },
+        orderBy: { date: 'asc' },
+        take: 6
+      }),
     ]);
 
-    res.json({ latestNotes, recentPosts, upcomingEvents });
+    dashboardCache = {
+      data: { latestNotes, recentPosts, upcomingEvents },
+      lastFetch: Date.now()
+    };
+
+    res.json(dashboardCache.data);
   } catch (error) {
+    console.error('Dashboard error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -66,8 +93,7 @@ app.use((err, req, res, next) => {
 });
 
 // ─── Socket.IO Chat ───────────────────────────────────────────────────────────
-const Message = require('./models/Message');
-const User = require('./models/User');
+const prisma = require('./prismaClient');
 const { getConversationId } = require('./routes/chat');
 
 // Map userId -> Set of socketIds (user may have multiple tabs)
@@ -105,25 +131,41 @@ io.on('connection', (socket) => {
     socket.leave(room);
   });
 
-  socket.on('send_message', async ({ receiverId, text }) => {
-    if (!text?.trim() || !receiverId) return;
+  socket.on('send_message', async ({ receiverId, encryptedText, iv, encryptedKeyForReceiver, encryptedKeyForSender }) => {
+    if (!encryptedText || !receiverId) return;
 
     try {
       // Verify connection
-      const me = await User.findById(userId);
-      if (!me?.connections?.map(String).includes(receiverId)) return;
+      const me = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { connections: { select: { id: true } } }
+      });
+      
+      const isConnected = me?.connections.some(c => c.id === receiverId);
+      if (!isConnected) return;
 
       const conversationId = getConversationId(userId, receiverId);
-      const message = await Message.create({
-        conversationId,
-        sender: userId,
-        receiver: receiverId,
-        text: text.trim(),
+      const message = await prisma.message.create({
+        data: {
+          conversationId,
+          senderId: userId,
+          receiverId,
+          encryptedText,
+          iv,
+          encryptedKeyForReceiver,
+          encryptedKeyForSender,
+        },
+        include: { sender: { select: { id: true, name: true, avatar: true } } }
       });
-      const populated = await message.populate('sender', 'name avatar');
+
+      const formattedMessage = {
+        ...message,
+        _id: message.id,
+        sender: { ...message.sender, _id: message.sender.id },
+      };
 
       // Emit to both users in the room
-      io.to(conversationId).emit('new_message', populated);
+      io.to(conversationId).emit('new_message', formattedMessage);
 
       // Notify receiver even if not in the room (for notification badge)
       const receiverSockets = onlineUsers.get(receiverId);
@@ -133,8 +175,11 @@ io.on('connection', (socket) => {
           if (s && !s.rooms.has(conversationId)) {
             s.emit('message_notification', {
               senderId: userId,
-              senderName: populated.sender.name,
-              text: text.trim(),
+              senderName: message.sender.name,
+              // Send the encrypted payload so the client can decrypt it for the notification
+              encryptedText,
+              iv,
+              encryptedKeyForReceiver,
               conversationId,
             });
           }
@@ -158,10 +203,14 @@ io.on('connection', (socket) => {
       const seenAt = new Date();
 
       // Mark all unread messages sent by partnerId as read
-      await Message.updateMany(
-        { conversationId, sender: partnerId, read: false },
-        { read: true }
-      );
+      await prisma.message.updateMany({
+        where: {
+          conversationId,
+          senderId: partnerId,
+          read: false
+        },
+        data: { read: true }
+      });
 
       // Tell the sender their messages were seen
       const partnerSockets = onlineUsers.get(String(partnerId));
@@ -178,6 +227,53 @@ io.on('connection', (socket) => {
       console.error('mark_read error:', err);
     }
   });
+
+  // ─── WebRTC Signaling ────────────────────────────────────────────────────────
+  socket.on('call_user', ({ userToCall, signalData, from, name, avatar, isVideo }) => {
+    const receiverSockets = onlineUsers.get(String(userToCall));
+    if (receiverSockets) {
+      receiverSockets.forEach(sid => {
+        io.to(sid).emit('call_user', { signal: signalData, from, name, avatar, isVideo });
+      });
+    }
+  });
+
+  socket.on('answer_call', ({ to, signal }) => {
+    const receiverSockets = onlineUsers.get(String(to));
+    if (receiverSockets) {
+      receiverSockets.forEach(sid => {
+        io.to(sid).emit('call_accepted', signal);
+      });
+    }
+  });
+
+  socket.on('ice_candidate', ({ to, candidate }) => {
+    const receiverSockets = onlineUsers.get(String(to));
+    if (receiverSockets) {
+      receiverSockets.forEach(sid => {
+        io.to(sid).emit('ice_candidate', candidate);
+      });
+    }
+  });
+
+  socket.on('reject_call', ({ to }) => {
+    const receiverSockets = onlineUsers.get(String(to));
+    if (receiverSockets) {
+      receiverSockets.forEach(sid => {
+        io.to(sid).emit('call_rejected');
+      });
+    }
+  });
+
+  socket.on('end_call', ({ to }) => {
+    const receiverSockets = onlineUsers.get(String(to));
+    if (receiverSockets) {
+      receiverSockets.forEach(sid => {
+        io.to(sid).emit('call_ended');
+      });
+    }
+  });
+
 
   socket.on('disconnect', () => {
     const sockets = onlineUsers.get(userId);

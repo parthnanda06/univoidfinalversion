@@ -31,12 +31,27 @@ API.interceptors.response.use(
 
 // Auth
 export const loginUser = (data) => API.post('/auth/login', data);
+export const oauthLogin = (data) => API.post('/auth/oauth', data);
 export const registerUser = (data) => API.post('/auth/register', data);
 export const getMe = () => API.get('/auth/me');
 
 // Users
 export const getProfile = () => API.get('/users/profile');
+
+// Posts (Global)
+export const getGlobalPosts = () => API.get('/posts');
+export const createGlobalPost = (data) => API.post('/posts', data, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+});
+export const updateGlobalPost = (id, data) => API.put(`/posts/${id}`, data);
+export const deleteGlobalPost = (id) => API.delete(`/posts/${id}`);
 export const updateProfile = (data) => API.put('/users/profile', data);
+export const addProject = (data) => API.post('/users/projects', data);
+export const updateProject = (id, data) => API.put(`/users/projects/${id}`, data);
+export const deleteProject = (id) => API.delete(`/users/projects/${id}`);
+export const addExperience = (data) => API.post('/users/experiences', data);
+export const updateExperience = (id, data) => API.put(`/users/experiences/${id}`, data);
+export const deleteExperience = (id) => API.delete(`/users/experiences/${id}`);
 export const searchUsers = (q, page = 1) => API.get('/users/search', { params: { q, page, limit: 20 } });
 export const getUserById = (id) => API.get(`/users/${id}`);
 // Connection requests
@@ -98,5 +113,11 @@ export const getConversations = () => API.get('/chat/conversations');
 export const getChatMessages = (userId, page = 1) => API.get(`/chat/${userId}`, { params: { page } });
 export const sendChatMessage = (userId, text) => API.post(`/chat/${userId}`, { text });
 
-export default API;
+// AI Study Buddy
+export const getAISessions = () => API.get('/ai/sessions');
+export const getAIHistory = (sessionId) => API.get(`/ai/sessions/${sessionId}`);
+export const askAI = (data) => API.post('/ai/ask', data);
+export const updateAISession = (sessionId, data) => API.put(`/ai/sessions/${sessionId}`, data);
+export const clearAIHistory = (sessionId) => API.delete(`/ai/sessions/${sessionId}`);
 
+export default API;

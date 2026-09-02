@@ -1,185 +1,222 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const Community = require('../models/Community');
-const Post = require('../models/Post');
-const User = require('../models/User');
+const prisma = require('../prismaClient');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Helper for formatting
+const formatDoc = (doc) => {
+  if (!doc) return doc;
+  return { ...doc, _id: doc.id };
+};
+const formatArr = (arr) => arr.map(formatDoc);
+
 // @route   GET /api/communities
-// @desc    Get all communities
-// @access  Public
 router.get('/', async (req, res) => {
   try {
-    const communities = await Community.find()
-      .populate('createdBy', 'name')
-      .sort({ memberCount: -1 });
-    res.json(communities);
+    const communities = await prisma.community.findMany({
+      include: { creator: { select: { id: true, name: true } } },
+      orderBy: { memberCount: 'desc' }
+    });
+    
+    const formatted = communities.map(c => {
+      const f = formatDoc(c);
+      f.createdBy = formatDoc(c.creator);
+      delete f.creator;
+      return f;
+    });
+    res.json(formatted);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   GET /api/communities/:id
-// @desc    Get single community with posts
-// @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const community = await Community.findById(req.params.id)
-      .populate('createdBy', 'name')
-      .populate('members', 'name avatar');
-    if (!community) {
-      return res.status(404).json({ message: 'Community not found' });
-    }
-    res.json(community);
+    const community = await prisma.community.findUnique({
+      where: { id: req.params.id },
+      include: {
+        creator: { select: { id: true, name: true } },
+        members: { select: { id: true, name: true, avatar: true } }
+      }
+    });
+    if (!community) return res.status(404).json({ message: 'Community not found' });
+    
+    const f = formatDoc(community);
+    f.createdBy = formatDoc(community.creator);
+    f.members = formatArr(community.members);
+    delete f.creator;
+    res.json(f);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   POST /api/communities
-// @desc    Create a community
-// @access  Private
 router.post('/', protect, [
   body('name').trim().notEmpty().withMessage('Community name is required'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array()[0].msg });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ message: errors.array()[0].msg });
 
     const { name, description, category, icon } = req.body;
 
-    const existing = await Community.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
-    if (existing) {
-      return res.status(400).json({ message: 'A community with this name already exists' });
-    }
+    const existing = await prisma.community.findFirst({
+      where: { name: { equals: name, mode: 'insensitive' } }
+    });
+    if (existing) return res.status(400).json({ message: 'A community with this name already exists' });
 
-    const community = await Community.create({
-      name,
-      description: description || '',
-      category: category || 'General',
-      icon: icon || '💬',
-      createdBy: req.user._id,
-      members: [req.user._id],
-      memberCount: 1,
+    const community = await prisma.community.create({
+      data: {
+        name,
+        description: description || '',
+        category: category || 'General',
+        icon: icon || '💬',
+        creatorId: req.user.id,
+        members: { connect: { id: req.user.id } },
+        memberCount: 1,
+      },
+      include: { creator: { select: { id: true, name: true } } }
     });
 
-    // Add community to user's joined list
-    await User.findByIdAndUpdate(req.user._id, {
-      $addToSet: { joinedCommunities: community._id },
-    });
-
-    await community.populate('createdBy', 'name');
-    res.status(201).json(community);
+    const f = formatDoc(community);
+    f.createdBy = formatDoc(community.creator);
+    delete f.creator;
+    res.status(201).json(f);
   } catch (error) {
-    console.error('Create community error:', error);
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   POST /api/communities/:id/join
-// @desc    Join a community
-// @access  Private
 router.post('/:id/join', protect, async (req, res) => {
   try {
-    const community = await Community.findById(req.params.id);
-    if (!community) {
-      return res.status(404).json({ message: 'Community not found' });
-    }
+    const community = await prisma.community.findUnique({
+      where: { id: req.params.id },
+      include: { members: { select: { id: true } } }
+    });
+    if (!community) return res.status(404).json({ message: 'Community not found' });
 
-    const isMember = community.members.some(m => m.toString() === req.user._id.toString());
-    if (isMember) {
+    if (community.members.some(m => m.id === req.user.id)) {
       return res.status(400).json({ message: 'Already a member' });
     }
 
-    community.members.push(req.user._id);
-    community.memberCount = community.members.length;
-    await community.save();
-
-    await User.findByIdAndUpdate(req.user._id, {
-      $addToSet: { joinedCommunities: community._id },
+    const updated = await prisma.community.update({
+      where: { id: req.params.id },
+      data: {
+        members: { connect: { id: req.user.id } },
+        memberCount: { increment: 1 }
+      }
     });
 
-    res.json({ message: 'Joined community', memberCount: community.memberCount });
+    res.json({ message: 'Joined community', memberCount: updated.memberCount });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   POST /api/communities/:id/leave
-// @desc    Leave a community
-// @access  Private
 router.post('/:id/leave', protect, async (req, res) => {
   try {
-    const community = await Community.findById(req.params.id);
-    if (!community) {
-      return res.status(404).json({ message: 'Community not found' });
+    const community = await prisma.community.findUnique({
+      where: { id: req.params.id },
+      include: { members: { select: { id: true } } }
+    });
+    if (!community) return res.status(404).json({ message: 'Community not found' });
+
+    if (!community.members.some(m => m.id === req.user.id)) {
+       return res.status(400).json({ message: 'Not a member' });
     }
 
-    community.members = community.members.filter(m => m.toString() !== req.user._id.toString());
-    community.memberCount = community.members.length;
-    await community.save();
-
-    await User.findByIdAndUpdate(req.user._id, {
-      $pull: { joinedCommunities: community._id },
+    const updated = await prisma.community.update({
+      where: { id: req.params.id },
+      data: {
+        members: { disconnect: { id: req.user.id } },
+        memberCount: { decrement: 1 }
+      }
     });
 
-    res.json({ message: 'Left community', memberCount: community.memberCount });
+    res.json({ message: 'Left community', memberCount: updated.memberCount });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   GET /api/communities/:id/posts
-// @desc    Get posts for a community
-// @access  Public
 router.get('/:id/posts', async (req, res) => {
   try {
-    const posts = await Post.find({ community: req.params.id })
-      .populate('author', 'name avatar')
-      .populate('comments.author', 'name avatar')
-      .populate('comments.replies.author', 'name avatar')
-      .sort({ createdAt: -1 });
-    res.json(posts);
+    const posts = await prisma.post.findMany({
+      where: { communityId: req.params.id },
+      include: {
+        author: { select: { id: true, name: true, avatar: true } },
+        comments: {
+          include: {
+            author: { select: { id: true, name: true, avatar: true } },
+            replies: { include: { author: { select: { id: true, name: true, avatar: true } } } }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    // format recursively
+    const formattedPosts = posts.map(p => {
+      const fp = formatDoc(p);
+      fp.author = formatDoc(p.author);
+      fp.comments = p.comments.map(c => {
+        const fc = formatDoc(c);
+        fc.author = formatDoc(c.author);
+        fc.replies = c.replies.map(r => {
+          const fr = formatDoc(r);
+          fr.author = formatDoc(r.author);
+          return fr;
+        });
+        return fc;
+      });
+      return fp;
+    });
+
+    res.json(formattedPosts);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-
 // @route   POST /api/communities/:id/posts
-// @desc    Create a post in a community
-// @access  Private (members only)
 router.post('/:id/posts', protect, [
   body('content').trim().notEmpty().withMessage('Post content is required'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array()[0].msg });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ message: errors.array()[0].msg });
 
-    const community = await Community.findById(req.params.id);
-    if (!community) {
-      return res.status(404).json({ message: 'Community not found' });
-    }
+    const community = await prisma.community.findUnique({
+      where: { id: req.params.id },
+      include: { members: { select: { id: true } } }
+    });
+    if (!community) return res.status(404).json({ message: 'Community not found' });
 
-    const isMember = community.members.some(m => m.toString() === req.user._id.toString());
-    if (!isMember) {
+    if (!community.members.some(m => m.id === req.user.id)) {
       return res.status(403).json({ message: 'You must join the community to post' });
     }
 
-    const post = await Post.create({
-      content: req.body.content,
-      community: req.params.id,
-      author: req.user._id,
+    const post = await prisma.post.create({
+      data: {
+        content: req.body.content,
+        communityId: req.params.id,
+        authorId: req.user.id,
+      },
+      include: { author: { select: { id: true, name: true, avatar: true } } }
     });
 
-    await post.populate('author', 'name avatar');
-    res.status(201).json(post);
+    const fp = formatDoc(post);
+    fp.author = formatDoc(post.author);
+    fp.comments = [];
+    res.status(201).json(fp);
   } catch (error) {
     console.error('Create post error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -187,90 +224,105 @@ router.post('/:id/posts', protect, [
 });
 
 // @route   POST /api/communities/posts/:postId/like
-// @desc    Toggle like on a post
-// @access  Private
 router.post('/posts/:postId/like', protect, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.postId);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
+    const post = await prisma.post.findUnique({
+      where: { id: req.params.postId },
+      include: { likes: { select: { id: true } } }
+    });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    const alreadyLiked = post.likes.some(l => l.toString() === req.user._id.toString());
+    const alreadyLiked = post.likes.some(l => l.id === req.user.id);
+    let updated;
     if (alreadyLiked) {
-      post.likes = post.likes.filter(l => l.toString() !== req.user._id.toString());
+      updated = await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          likes: { disconnect: { id: req.user.id } },
+          likeCount: { decrement: 1 }
+        }
+      });
     } else {
-      post.likes.push(req.user._id);
+      updated = await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          likes: { connect: { id: req.user.id } },
+          likeCount: { increment: 1 }
+        }
+      });
     }
-    post.likeCount = post.likes.length;
-    await post.save();
 
-    res.json({ likeCount: post.likeCount, liked: !alreadyLiked });
+    res.json({ likeCount: updated.likeCount, liked: !alreadyLiked });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   POST /api/communities/posts/:postId/comment
-// @desc    Add a comment to a post
-// @access  Private
 router.post('/posts/:postId/comment', protect, [
   body('text').trim().notEmpty().withMessage('Comment text is required'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array()[0].msg });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ message: errors.array()[0].msg });
 
-    const post = await Post.findById(req.params.postId);
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
+    const post = await prisma.post.findUnique({ where: { id: req.params.postId } });
+    if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    post.comments.push({
-      text: req.body.text,
-      author: req.user._id,
+    const comment = await prisma.comment.create({
+      data: {
+        text: req.body.text,
+        postId: post.id,
+        authorId: req.user.id,
+      },
+      include: { author: { select: { id: true, name: true, avatar: true } } }
     });
-    await post.save();
 
-    await post.populate('comments.author', 'name avatar');
-    const newComment = post.comments[post.comments.length - 1];
-    res.status(201).json(newComment);
+    const fc = formatDoc(comment);
+    fc.author = formatDoc(comment.author);
+    fc.replies = [];
+    res.status(201).json(fc);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   POST /api/communities/posts/:postId/comments/:commentId/like
-// @desc    Toggle like on a comment
-// @access  Private
 router.post('/posts/:postId/comments/:commentId/like', protect, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.postId);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
-    const comment = post.comments.id(req.params.commentId);
+    const comment = await prisma.comment.findUnique({
+      where: { id: req.params.commentId },
+      include: { likes: { select: { id: true } } }
+    });
     if (!comment) return res.status(404).json({ message: 'Comment not found' });
 
-    const alreadyLiked = comment.likes.some(l => l.toString() === req.user._id.toString());
+    const alreadyLiked = comment.likes.some(l => l.id === req.user.id);
+    let updated;
     if (alreadyLiked) {
-      comment.likes = comment.likes.filter(l => l.toString() !== req.user._id.toString());
+      updated = await prisma.comment.update({
+        where: { id: comment.id },
+        data: {
+          likes: { disconnect: { id: req.user.id } },
+          likeCount: { decrement: 1 }
+        }
+      });
     } else {
-      comment.likes.push(req.user._id);
+      updated = await prisma.comment.update({
+        where: { id: comment.id },
+        data: {
+          likes: { connect: { id: req.user.id } },
+          likeCount: { increment: 1 }
+        }
+      });
     }
-    comment.likeCount = comment.likes.length;
-    await post.save();
 
-    res.json({ likeCount: comment.likeCount, liked: !alreadyLiked });
+    res.json({ likeCount: updated.likeCount, liked: !alreadyLiked });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   POST /api/communities/posts/:postId/comments/:commentId/reply
-// @desc    Add a reply to a comment
-// @access  Private
 router.post('/posts/:postId/comments/:commentId/reply', protect, [
   body('text').trim().notEmpty().withMessage('Reply text is required'),
 ], async (req, res) => {
@@ -278,52 +330,59 @@ router.post('/posts/:postId/comments/:commentId/reply', protect, [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ message: errors.array()[0].msg });
 
-    const post = await Post.findById(req.params.postId);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
-    const comment = post.comments.id(req.params.commentId);
+    const comment = await prisma.comment.findUnique({ where: { id: req.params.commentId } });
     if (!comment) return res.status(404).json({ message: 'Comment not found' });
 
-    comment.replies.push({ text: req.body.text, author: req.user._id });
-    await post.save();
+    const reply = await prisma.reply.create({
+      data: {
+        text: req.body.text,
+        commentId: comment.id,
+        authorId: req.user.id,
+      },
+      include: { author: { select: { id: true, name: true, avatar: true } } }
+    });
 
-    await post.populate('comments.replies.author', 'name avatar');
-    const updatedComment = post.comments.id(req.params.commentId);
-    const newReply = updatedComment.replies[updatedComment.replies.length - 1];
-    res.status(201).json(newReply);
+    const fr = formatDoc(reply);
+    fr.author = formatDoc(reply.author);
+    res.status(201).json(fr);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // @route   POST /api/communities/posts/:postId/comments/:commentId/replies/:replyId/like
-// @desc    Toggle like on a reply
-// @access  Private
 router.post('/posts/:postId/comments/:commentId/replies/:replyId/like', protect, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.postId);
-    if (!post) return res.status(404).json({ message: 'Post not found' });
-
-    const comment = post.comments.id(req.params.commentId);
-    if (!comment) return res.status(404).json({ message: 'Comment not found' });
-
-    const reply = comment.replies.id(req.params.replyId);
+    const reply = await prisma.reply.findUnique({
+      where: { id: req.params.replyId },
+      include: { likes: { select: { id: true } } }
+    });
     if (!reply) return res.status(404).json({ message: 'Reply not found' });
 
-    const alreadyLiked = reply.likes.some(l => l.toString() === req.user._id.toString());
+    const alreadyLiked = reply.likes.some(l => l.id === req.user.id);
+    let updated;
     if (alreadyLiked) {
-      reply.likes = reply.likes.filter(l => l.toString() !== req.user._id.toString());
+      updated = await prisma.reply.update({
+        where: { id: reply.id },
+        data: {
+          likes: { disconnect: { id: req.user.id } },
+          likeCount: { decrement: 1 }
+        }
+      });
     } else {
-      reply.likes.push(req.user._id);
+      updated = await prisma.reply.update({
+        where: { id: reply.id },
+        data: {
+          likes: { connect: { id: req.user.id } },
+          likeCount: { increment: 1 }
+        }
+      });
     }
-    reply.likeCount = reply.likes.length;
-    await post.save();
 
-    res.json({ likeCount: reply.likeCount, liked: !alreadyLiked });
+    res.json({ likeCount: updated.likeCount, liked: !alreadyLiked });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 module.exports = router;
-

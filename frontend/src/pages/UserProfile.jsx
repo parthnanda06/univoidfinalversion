@@ -52,7 +52,7 @@ const UserProfile = () => {
     load();
   }, [id]);
 
-  const isConnected = me?.connections?.map(String)?.includes(id);
+  const isConnected = me?.connections?.some(c => String(c._id || c) === String(id));
   const [isPending, setIsPending] = useState(false);
 
   // Check if we already sent a request
@@ -103,8 +103,8 @@ const UserProfile = () => {
   if (loading) {
     return (
       <div className="p-6 max-w-3xl mx-auto animate-pulse space-y-4">
-        <div className="glass-card rounded-3xl overflow-hidden">
-          <div className="h-32 bg-surface-800" />
+        <div className="bg-white border border-surface-200 shadow-sm rounded-3xl overflow-hidden">
+          <div className="h-32 bg-white border border-surface-200" />
           <div className="p-6 flex gap-4 -mt-10">
             <div className="w-20 h-20 rounded-2xl bg-surface-700" />
             <div className="flex-1 space-y-2 pt-6">
@@ -119,8 +119,8 @@ const UserProfile = () => {
 
   if (!profile) return (
     <div className="p-8 text-center">
-      <p className="text-surface-400">User not found.</p>
-      <Link to="/people" className="text-primary-400 text-sm mt-2 inline-block">← Back to People</Link>
+      <p className="text-surface-500">User not found.</p>
+      <Link to="/people" className="text-primary-600 text-sm mt-2 inline-block">← Back to People</Link>
     </div>
   );
 
@@ -129,12 +129,12 @@ const UserProfile = () => {
 
   return (
     <div className="p-4 lg:p-8 max-w-3xl mx-auto animate-fade-in">
-      <Link to="/people" className="inline-flex items-center gap-2 text-sm text-surface-400 hover:text-white mb-6 transition-colors">
+      <Link to="/people" className="inline-flex items-center gap-2 text-sm text-surface-500 hover:text-surface-900 mb-6 transition-colors">
         <HiOutlineArrowLeft className="w-4 h-4" /> Back to People
       </Link>
 
       {/* Banner card */}
-      <div className="glass-card rounded-3xl overflow-hidden mb-5">
+      <div className="bg-white border border-surface-200 shadow-sm rounded-3xl overflow-hidden mb-5">
         <div className="h-32 bg-gradient-to-r from-primary-600 via-accent-500 to-primary-800 relative">
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'6\'/%3E%3C/g%3E%3C/svg%3E")' }} />
         </div>
@@ -150,12 +150,12 @@ const UserProfile = () => {
                   style={{ cursor: 'default' }}
                 />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white text-2xl font-bold ring-4 ring-primary-500/30">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-surface-900 text-2xl font-bold ring-4 ring-primary-500/30">
                   {profile.name?.charAt(0).toUpperCase()}
                 </div>
               )}
               {profile.openToWork && (
-                <span className="absolute -bottom-1 -right-1 bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full ring-2 ring-surface-900">OPEN</span>
+                <span className="absolute -bottom-1 -right-1 bg-green-500 text-surface-900 text-[9px] font-bold px-2 py-0.5 rounded-full ring-2 ring-surface-900">OPEN</span>
               )}
             </div>
 
@@ -206,7 +206,7 @@ const UserProfile = () => {
                 {isConnected && (
                   <button
                     onClick={() => openChat(profile)}
-                    className="flex items-center gap-2 text-sm font-medium px-5 py-2 rounded-xl transition-all duration-200 bg-primary-500/20 text-primary-300 border border-primary-500/30 hover:bg-primary-500/30"
+                    className="flex items-center gap-2 text-sm font-medium px-5 py-2 rounded-xl transition-all duration-200 bg-primary-500/20 text-primary-700 border border-primary-500/30 hover:bg-primary-500/30"
                   >
                     <HiOutlineChatAlt2 className="w-4 h-4" /> Message
                   </button>
@@ -250,29 +250,29 @@ const UserProfile = () => {
 
           <div className="mt-4">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold text-white">{profile.name}</h1>
+              <h1 className="text-xl font-bold text-surface-900">{profile.name}</h1>
               {profile.role === 'admin' && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider bg-primary-500/20 text-primary-300 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider bg-primary-500/20 text-primary-700 px-2 py-0.5 rounded-full">
                   <HiOutlineBadgeCheck className="w-3 h-3" /> Admin
                 </span>
               )}
             </div>
             {profile.headline && <p className="text-accent-300 text-sm mt-1">{profile.headline}</p>}
-            <div className="flex flex-wrap gap-4 mt-2 text-xs text-surface-300">
+            <div className="flex flex-wrap gap-4 mt-2 text-xs text-surface-500">
               {profile.college && (
                 <span className="flex items-center gap-1.5">
-                  <HiOutlineAcademicCap className="w-3.5 h-3.5 text-primary-400" />
+                  <HiOutlineAcademicCap className="w-3.5 h-3.5 text-primary-600" />
                   {[profile.college, profile.branch, profile.year].filter(Boolean).join(' · ')}
                 </span>
               )}
               {profile.location && (
                 <span className="flex items-center gap-1.5">
-                  <HiOutlineLocationMarker className="w-3.5 h-3.5 text-accent-400" />
+                  <HiOutlineLocationMarker className="w-3.5 h-3.5 text-accent-600" />
                   {profile.location}
                 </span>
               )}
             </div>
-            <div className="flex gap-6 mt-4 pt-4 border-t border-white/5">
+            <div className="flex gap-6 mt-4 pt-4 border-t border-surface-200">
               {[
                 { key: 'connections', label: 'Connections', val: profile.connections?.length ?? 0 },
                 { key: 'followers',   label: 'Followers',   val: profile.followers?.length ?? 0 },
@@ -283,8 +283,8 @@ const UserProfile = () => {
                   onClick={() => setDrawer(key)}
                   className="text-center group hover:scale-105 transition-transform duration-200"
                 >
-                  <p className="text-lg font-bold text-white group-hover:text-primary-300 transition-colors">{val}</p>
-                  <p className="text-[10px] uppercase tracking-wider text-surface-400 group-hover:text-primary-400 transition-colors group-hover:underline underline-offset-2">{label}</p>
+                  <p className="text-lg font-bold text-surface-900 group-hover:text-primary-700 transition-colors">{val}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-surface-500 group-hover:text-primary-600 transition-colors group-hover:underline underline-offset-2">{label}</p>
                 </button>
               ))}
             </div>
@@ -292,41 +292,41 @@ const UserProfile = () => {
             {/* Drawers */}
             {drawer && (
               <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setDrawer(null)}>
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-                <div className="relative w-full max-w-md bg-surface-900 border border-white/10 rounded-3xl shadow-2xl max-h-[70vh] flex flex-col animate-fade-in" onClick={e => e.stopPropagation()}>
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-                    <h2 className="text-base font-bold text-white capitalize">{drawer}</h2>
-                    <button onClick={() => setDrawer(null)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-surface-800 text-surface-300 hover:text-white transition-all">
+                <div className="absolute inset-0 bg-surface-900/40 backdrop-blur-sm" />
+                <div className="relative w-full max-w-md bg-surface-50 border border-surface-200 border border-surface-200 rounded-3xl shadow-2xl max-h-[70vh] flex flex-col animate-fade-in" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-surface-200">
+                    <h2 className="text-base font-bold text-surface-900 capitalize">{drawer}</h2>
+                    <button onClick={() => setDrawer(null)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white border border-surface-200 text-surface-500 hover:text-surface-900 transition-all">
                       <HiOutlineX className="w-5 h-5" />
                     </button>
                   </div>
                   <div className="overflow-y-auto flex-1 p-4 space-y-2">
                     {drawer === 'communities' ? (
                       (profile.joinedCommunities || []).length === 0
-                        ? <p className="text-center text-surface-400 text-sm py-10">No communities joined yet.</p>
+                        ? <p className="text-center text-surface-500 text-sm py-10">No communities joined yet.</p>
                         : (profile.joinedCommunities || []).map(c => (
                           <Link key={c._id} to={`/communities/${c._id}`} onClick={() => setDrawer(null)}
-                            className="flex items-center gap-3 p-3 rounded-xl bg-surface-800/50 hover:bg-surface-800 transition-colors">
+                            className="flex items-center gap-3 p-3 rounded-xl bg-white border border-surface-200 hover:bg-white border border-surface-200 transition-colors">
                             <span className="text-2xl">{c.icon || '💬'}</span>
                             <div>
-                              <p className="text-sm font-semibold text-white">{c.name}</p>
-                              <p className="text-xs text-surface-400">{c.memberCount ?? 0} members</p>
+                              <p className="text-sm font-semibold text-surface-900">{c.name}</p>
+                              <p className="text-xs text-surface-500">{c.memberCount ?? 0} members</p>
                             </div>
                           </Link>
                         ))
                     ) : (
                       (drawer === 'connections' ? profile.connections : profile.followers || []).length === 0
-                        ? <p className="text-center text-surface-400 text-sm py-10">No one here yet.</p>
+                        ? <p className="text-center text-surface-500 text-sm py-10">No one here yet.</p>
                         : (drawer === 'connections' ? profile.connections : profile.followers || []).map(person => (
                           <Link key={person._id} to={`/people/${person._id}`} onClick={() => setDrawer(null)}
-                            className="flex items-center gap-3 p-3 rounded-xl bg-surface-800/50 hover:bg-surface-800 transition-colors group">
+                            className="flex items-center gap-3 p-3 rounded-xl bg-white border border-surface-200 hover:bg-white border border-surface-200 transition-colors group">
                             {person.avatar
                               ? <img src={person.avatar} alt={person.name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
-                              : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white font-bold text-sm shrink-0">{person.name?.charAt(0).toUpperCase()}</div>
+                              : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-surface-900 font-bold text-sm shrink-0">{person.name?.charAt(0).toUpperCase()}</div>
                             }
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold text-white group-hover:text-primary-300 transition-colors truncate">{person.name}</p>
-                              <p className="text-xs text-surface-400 truncate">{person.headline || person.college || ''}</p>
+                              <p className="text-sm font-semibold text-surface-900 group-hover:text-primary-700 transition-colors truncate">{person.name}</p>
+                              <p className="text-xs text-surface-500 truncate">{person.headline || person.college || ''}</p>
                             </div>
                           </Link>
                         ))
@@ -340,15 +340,15 @@ const UserProfile = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-surface-900/50 rounded-xl p-1 mb-4 overflow-x-auto">
+      <div className="flex gap-1 bg-surface-50 border border-surface-200/50 rounded-xl p-1 mb-4 overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`flex-1 min-w-max px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all duration-200 ${
               activeTab === tab
-                ? 'bg-primary-500/20 text-primary-300 border border-primary-500/20'
-                : 'text-surface-300 hover:text-white'
+                ? 'bg-primary-500/20 text-primary-700 border border-primary-500/20'
+                : 'text-surface-500 hover:text-surface-900'
             }`}
           >
             {tab}
@@ -357,11 +357,11 @@ const UserProfile = () => {
       </div>
 
       {activeTab === 'about' && (
-        <div className="glass-card rounded-2xl p-6 space-y-5">
+        <div className="bg-white border border-surface-200 shadow-sm rounded-2xl p-6 space-y-5">
           {profile.bio && (
             <div>
               <p className="text-[10px] uppercase tracking-wider text-surface-500 mb-2">About</p>
-              <p className="text-sm text-surface-200 leading-relaxed">{profile.bio}</p>
+              <p className="text-sm text-surface-600 leading-relaxed">{profile.bio}</p>
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -374,36 +374,36 @@ const UserProfile = () => {
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-[10px] uppercase tracking-wider text-surface-500 mb-1">{label}</p>
-                <p className="text-sm text-white">{value || '—'}</p>
+                <p className="text-sm text-surface-900">{value || '—'}</p>
               </div>
             ))}
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-surface-500 mb-1">Member Since</p>
-            <p className="text-sm text-white">{new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            <p className="text-sm text-surface-900">{new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </div>
         </div>
       )}
 
       {activeTab === 'skills' && (
-        <div className="glass-card rounded-2xl p-6">
+        <div className="bg-white border border-surface-200 shadow-sm rounded-2xl p-6">
           <p className="text-[10px] uppercase tracking-wider text-surface-500 mb-4">Skills & Expertise</p>
           {profile.skills?.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {profile.skills.map(skill => (
-                <span key={skill} className="text-sm bg-primary-500/15 text-primary-300 border border-primary-500/20 px-4 py-1.5 rounded-full font-medium">
+                <span key={skill} className="text-sm bg-primary-50 text-primary-700 border border-primary-500/20 px-4 py-1.5 rounded-full font-medium">
                   {skill}
                 </span>
               ))}
             </div>
           ) : (
-            <p className="text-surface-400 text-sm py-6 text-center">No skills added yet.</p>
+            <p className="text-surface-500 text-sm py-6 text-center">No skills added yet.</p>
           )}
         </div>
       )}
 
       {activeTab === 'links' && (
-        <div className="glass-card rounded-2xl p-6">
+        <div className="bg-white border border-surface-200 shadow-sm rounded-2xl p-6">
           <p className="text-[10px] uppercase tracking-wider text-surface-500 mb-4">Links</p>
           {LINK_META.map(({ key, label, icon, color }) =>
             profile.links?.[key] ? (
@@ -412,34 +412,34 @@ const UserProfile = () => {
                 href={profile.links[key]}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0 hover:pl-1 transition-all group"
+                className="flex items-center gap-3 py-3 border-b border-surface-200 last:border-0 hover:pl-1 transition-all group"
               >
                 <span className="text-lg">{icon}</span>
-                <span className="text-sm text-surface-200 group-hover:text-white transition-colors">{label}</span>
+                <span className="text-sm text-surface-600 group-hover:text-surface-900 transition-colors">{label}</span>
                 <span className="text-xs text-surface-500 truncate ml-auto">{profile.links[key]}</span>
               </a>
             ) : null
           )}
           {!Object.values(profile.links || {}).some(Boolean) && (
-            <p className="text-surface-400 text-sm py-6 text-center">No links added.</p>
+            <p className="text-surface-500 text-sm py-6 text-center">No links added.</p>
           )}
         </div>
       )}
 
       {activeTab === 'communities' && (
-        <div className="glass-card rounded-2xl p-6">
+        <div className="bg-white border border-surface-200 shadow-sm rounded-2xl p-6">
           <p className="text-[10px] uppercase tracking-wider text-surface-500 mb-4">Communities</p>
           <div className="space-y-2">
             {profile.joinedCommunities?.map(c => (
               <Link
                 key={c._id}
                 to={`/communities/${c._id}`}
-                className="flex items-center gap-3 p-3 rounded-xl bg-surface-800/40 hover:bg-surface-800/60 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-xl bg-white border border-surface-200/40 hover:bg-white border border-surface-200/60 transition-colors"
               >
                 <span className="text-xl">{c.icon || '💬'}</span>
                 <div>
-                  <p className="text-sm font-medium text-white">{c.name}</p>
-                  <p className="text-xs text-surface-400">{c.memberCount} members</p>
+                  <p className="text-sm font-medium text-surface-900">{c.name}</p>
+                  <p className="text-xs text-surface-500">{c.memberCount} members</p>
                 </div>
               </Link>
             ))}
