@@ -103,7 +103,7 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30_000);
+    const interval = setInterval(fetchNotifications, 300_000); // 5 minutes instead of 30 seconds
     return () => clearInterval(interval);
   }, [user, fetchNotifications]);
 
@@ -119,7 +119,7 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
     fetchConnectionRequests();
-    const interval = setInterval(fetchConnectionRequests, 30_000);
+    const interval = setInterval(fetchConnectionRequests, 180_000); // 3 minutes instead of 30 seconds
     return () => clearInterval(interval);
   }, [user, fetchConnectionRequests]);
 
