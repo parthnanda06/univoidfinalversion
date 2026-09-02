@@ -32,7 +32,7 @@ const Navbar = () => {
     { name: 'Notes', path: '/notes' },
     { name: 'Communities', path: '/communities' },
     { name: 'Events', path: '/events' },
-    { name: 'Find People', path: '/search' }, // updated to point to search
+    { name: 'Find People', path: '/people' },
   ];
 
   // Removed click outside to prevent instant close bug
