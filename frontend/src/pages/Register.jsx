@@ -59,7 +59,7 @@ const Register = () => {
       <div className="relative z-10 w-full h-full flex flex-col lg:flex-row items-center justify-start px-6 sm:px-10 lg:pl-[8%] xl:pl-[12%] py-12">
         
         {/* Left side: Form */}
-        <div className="w-full lg:w-[520px] flex-shrink-0">
+        <div className="w-full lg:w-[600px] xl:w-[650px] flex-shrink-0">
           <div className="w-full bg-[#1e1f26]/40 backdrop-blur-2xl p-8 sm:p-12 rounded-[24px] border border-white/10 shadow-2xl text-white">
             <div className="mb-8">
               <h1 className="text-3xl sm:text-4xl font-bold mb-2">Create your account ✨</h1>
