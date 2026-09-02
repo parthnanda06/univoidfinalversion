@@ -107,7 +107,7 @@ router.post('/ask', protect, async (req, res) => {
     // 3. Call Groq API
     const chatCompletion = await groq.chat.completions.create({
       messages: messages,
-      model: 'groq/compound',
+      model: 'qwen/qwen3.8-27b',
       temperature: 0.7,
       max_tokens: 1024,
       top_p: 1,
@@ -131,7 +131,7 @@ router.post('/ask', protect, async (req, res) => {
             { role: 'system', content: 'Generate a short 3-5 word title for a conversation that starts with these messages. Return ONLY the title text without quotes.' },
             { role: 'user', content: `User: ${historyMessages[0].content}\nAI: ${historyMessages[1].content}\nUser: ${historyMessages[2].content}` }
           ],
-          model: 'groq/compound',
+          model: 'qwen/qwen3.8-27b',
           temperature: 0.5,
           max_tokens: 30,
         });

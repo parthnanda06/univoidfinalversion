@@ -8,8 +8,8 @@ const groq = new Groq({
 async function main() {
   try {
     const chatCompletion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: 'what is 2+2?' }],
-      model: 'groq/compound',
+      messages: [{ role: 'user', content: 'test' }],
+      model: 'qwen/qwen3.8-27b',
     });
     console.log(chatCompletion.choices[0]?.message?.content);
   } catch (error) {
