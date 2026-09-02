@@ -70,6 +70,12 @@ export const AuthProvider = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        const existingToken = localStorage.getItem('univoid_token');
+        // Prevent duplicate authentication checks on page reload if we already have a valid local token
+        if (existingToken && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          return; 
+        }
+        
         let loadingToast;
         try {
           loadingToast = toast.loading('Verifying secure login...');

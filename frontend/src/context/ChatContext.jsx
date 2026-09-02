@@ -12,6 +12,9 @@ export const ChatProvider = ({ children }) => {
 
   // Chat state
   const [openChats, setOpenChats] = useState([]); // [{partner, messages, unread}]
+  const openChatsRef = useRef([]);
+  useEffect(() => { openChatsRef.current = openChats; }, [openChats]);
+  const publicKeysRef = useRef({});
   const [conversations, setConversations] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [unreadTotal, setUnreadTotal] = useState(0);
@@ -217,14 +220,18 @@ export const ChatProvider = ({ children }) => {
 
   // Open a chat with a user
   const openChat = useCallback(async (partner) => {
-    // Bring to front if already open
-    setOpenChats((prev) => {
-      const exists = prev.find((c) => String(c.partner._id) === String(partner._id));
-      if (exists) {
-        return prev.map((c) =>
+    // Bring to front if already open without fetching history again
+    const exists = openChatsRef.current.find((c) => String(c.partner._id) === String(partner._id));
+    if (exists) {
+      setOpenChats((prev) =>
+        prev.map((c) =>
           String(c.partner._id) === String(partner._id) ? { ...c, minimized: false } : c
-        );
-      }
+        )
+      );
+      return;
+    }
+
+    setOpenChats((prev) => {
       // Max 3 concurrent open chats
       const updated = prev.length >= 3 ? prev.slice(1) : prev;
       return [...updated, { partner, messages: [], isLoading: true, minimized: false, isTyping: false }];
@@ -302,13 +309,22 @@ export const ChatProvider = ({ children }) => {
     );
 
     try {
-      // Get public keys
-      const [receiverRes, senderRes] = await Promise.all([
-        API.get(`/users/${partnerId}/public-key`),
-        API.get(`/users/${user._id}/public-key`)
-      ]);
-      const receiverPubKey = receiverRes.data.publicKey;
-      const senderPubKey = senderRes.data.publicKey;
+      // Get public keys using cache to prevent redundant API calls
+      let receiverPubKey = publicKeysRef.current[partnerId];
+      let senderPubKey = publicKeysRef.current[user._id];
+
+      if (!receiverPubKey || !senderPubKey) {
+        const [receiverRes, senderRes] = await Promise.all([
+          !receiverPubKey ? API.get(`/users/${partnerId}/public-key`) : Promise.resolve({ data: { publicKey: receiverPubKey } }),
+          !senderPubKey ? API.get(`/users/${user._id}/public-key`) : Promise.resolve({ data: { publicKey: senderPubKey } })
+        ]);
+        
+        receiverPubKey = receiverRes.data.publicKey;
+        senderPubKey = senderRes.data.publicKey;
+
+        if (receiverPubKey) publicKeysRef.current[partnerId] = receiverPubKey;
+        if (senderPubKey) publicKeysRef.current[user._id] = senderPubKey;
+      }
 
       if (!receiverPubKey || !senderPubKey) {
         throw new Error('Public keys not found');
