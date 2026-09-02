@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  HiX, HiMinus, HiPaperAirplane, HiOutlineCheck, HiOutlineCheckCircle, HiOutlineArrowsExpand, HiOutlineEmojiHappy
+  HiX, HiMinus, HiPaperAirplane, HiOutlineCheck, HiOutlineCheckCircle, HiOutlineArrowsExpand, HiOutlineEmojiHappy, HiOutlineClock
 } from 'react-icons/hi';
 import EmojiPicker from 'emoji-picker-react';
 
@@ -296,9 +296,11 @@ const ChatWindow = ({ chat, index, total }) => {
                           {new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                           {/* Delivery tick — only for my messages */}
                           {isMine && (
-                            msg.read
-                              ? <HiOutlineCheckCircle style={{ width: 11, height: 11, color: '#818cf8' }} title="Seen" />
-                              : <HiOutlineCheck style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.4)' }} title="Delivered" />
+                            msg.status === 'sending'
+                              ? <HiOutlineClock style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.4)' }} title="Sending..." />
+                              : msg.read
+                                ? <HiOutlineCheckCircle style={{ width: 11, height: 11, color: '#818cf8' }} title="Seen" />
+                                : <HiOutlineCheck style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.4)' }} title="Delivered" />
                           )}
                         </div>
                       </div>

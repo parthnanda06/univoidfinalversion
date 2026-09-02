@@ -86,7 +86,9 @@ export const ChatProvider = ({ children }) => {
         prev.map((chat) => {
           if (String(chat.partner._id) === String(msg.sender._id) ||
               String(chat.partner._id) === String(msg.receiver)) {
-            return { ...chat, messages: [...chat.messages, msg] };
+            // Remove any optimistic message with the exact same text that is still "sending"
+            const filteredMessages = chat.messages.filter(m => !(m.status === 'sending' && m.text === msg.text));
+            return { ...chat, messages: [...filteredMessages, msg] };
           }
           return chat;
         })
@@ -279,6 +281,26 @@ export const ChatProvider = ({ children }) => {
   // Send a message
   const sendMessage = useCallback(async (partnerId, text) => {
     if (!text?.trim()) return;
+    
+    const tempId = 'temp-' + Date.now();
+    const optimisticMsg = {
+      _id: tempId,
+      sender: user._id,
+      receiver: partnerId,
+      text: text,
+      createdAt: new Date().toISOString(),
+      read: false,
+      status: 'sending'
+    };
+
+    setOpenChats((prev) =>
+      prev.map((chat) =>
+        String(chat.partner._id) === String(partnerId)
+          ? { ...chat, messages: [...chat.messages, optimisticMsg] }
+          : chat
+      )
+    );
+
     try {
       // Get public keys
       const [receiverRes, senderRes] = await Promise.all([
@@ -297,6 +319,14 @@ export const ChatProvider = ({ children }) => {
       socketRef.current?.emit('send_message', { receiverId: String(partnerId), ...payload });
     } catch (err) {
       console.error('Failed to encrypt and send message:', err);
+      // Remove optimistic message on failure
+      setOpenChats((prev) =>
+        prev.map((chat) =>
+          String(chat.partner._id) === String(partnerId)
+            ? { ...chat, messages: chat.messages.filter(m => m._id !== tempId) }
+            : chat
+        )
+      );
       if (err.response?.status === 404 || err.message === 'Public keys not found') {
         alert("Cannot send message: This user hasn't logged in since E2EE was enabled, so they don't have a public key yet.");
       } else {
