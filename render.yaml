@@ -15,5 +15,15 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: posts-media
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: FRONTEND_URL
         value: https://univoid.vercel.app
