@@ -29,6 +29,7 @@ export const ChatProvider = ({ children }) => {
   const activeCallRef = useRef(null);
   const callAcceptedRef = useRef(false);
   const iceCandidateQueueRef = useRef([]);
+  const localStreamRef = useRef(null);
 
   const setActiveCall = (call) => {
     activeCallRef.current = call;
@@ -343,6 +344,7 @@ export const ChatProvider = ({ children }) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
       setLocalStream(stream);
+      localStreamRef.current = stream;
       setActiveCall({ partnerId: partner._id, name: partner.name, avatar: partner.avatar, isVideo, isCaller: true });
       
       const pc = createPeerConnection(partner._id);
@@ -373,6 +375,7 @@ export const ChatProvider = ({ children }) => {
       setCallStartTime(Date.now());
       callAcceptedRef.current = true;
       setLocalStream(stream);
+      localStreamRef.current = stream;
       setActiveCall({ partnerId: incomingCall.from, name: incomingCall.name, avatar: incomingCall.avatar, isVideo: incomingCall.isVideo, isCaller: false });
       
       const pc = createPeerConnection(incomingCall.from);
@@ -425,8 +428,9 @@ export const ChatProvider = ({ children }) => {
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
     }
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+      localStreamRef.current = null;
     }
     setLocalStream(null);
     setRemoteStream(null);
