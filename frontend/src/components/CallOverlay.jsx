@@ -25,6 +25,7 @@ const CallOverlay = () => {
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const nodeRef = useRef(null);
 
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
@@ -88,8 +89,8 @@ const CallOverlay = () => {
   if (!incomingCall && !activeCall) return null;
 
   return (
-    <Draggable handle=".drag-handle">
-      <div className="fixed top-24 right-8 z-[9999] animate-fade-in shadow-2xl rounded-2xl overflow-hidden border border-gray-200 bg-white" style={{ width: '360px' }}>
+    <Draggable handle=".drag-handle" nodeRef={nodeRef}>
+      <div ref={nodeRef} className="fixed top-24 right-8 z-[9999] animate-fade-in shadow-2xl rounded-2xl overflow-hidden border border-gray-200 bg-white" style={{ width: '360px' }}>
       
       {/* ── INCOMING CALL VIEW ── */}
       {incomingCall && !callAccepted && (
