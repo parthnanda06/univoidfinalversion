@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Draggable from 'react-draggable';
 import { useChat } from '../context/ChatContext';
 import { 
   HiOutlinePhoneMissedCall, 
@@ -87,11 +88,12 @@ const CallOverlay = () => {
   if (!incomingCall && !activeCall) return null;
 
   return (
-    <div className="fixed top-24 right-8 z-[9999] animate-fade-in shadow-2xl rounded-2xl overflow-hidden border border-gray-200 bg-white" style={{ width: '360px' }}>
+    <Draggable handle=".drag-handle">
+      <div className="fixed top-24 right-8 z-[9999] animate-fade-in shadow-2xl rounded-2xl overflow-hidden border border-gray-200 bg-white" style={{ width: '360px' }}>
       
       {/* ── INCOMING CALL VIEW ── */}
       {incomingCall && !callAccepted && (
-        <div className="bg-white p-6 text-center w-full">
+        <div className="bg-white p-6 text-center w-full drag-handle cursor-move">
           <div className="w-20 h-20 mx-auto bg-[#00a884] rounded-full flex items-center justify-center shadow-md mb-4 relative">
             {incomingCall.avatar ? (
               <img src={incomingCall.avatar} alt={incomingCall.name} className="w-full h-full rounded-full object-cover p-0.5 bg-white" />
@@ -128,7 +130,7 @@ const CallOverlay = () => {
         <div className="relative w-full bg-white flex flex-col" style={{ height: activeCall?.isVideo ? '480px' : '360px' }}>
           
           {/* Header */}
-          <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-white/90 to-white/0 z-30 flex items-center justify-between">
+          <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent z-30 flex items-center justify-between drag-handle cursor-move">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden shadow-sm">
                 {activeCall?.avatar ? (
@@ -138,8 +140,8 @@ const CallOverlay = () => {
                 )}
               </div>
               <div>
-                <h2 className="text-gray-900 font-bold text-sm drop-shadow-sm">{activeCall?.name}</h2>
-                <p className="text-gray-500 text-xs font-medium">
+                <h2 className="text-white font-bold text-sm drop-shadow-sm">{activeCall?.name}</h2>
+                <p className="text-white/80 text-xs font-medium">
                   {!callAccepted && activeCall?.isCaller ? 'Calling...' : formatTime(callDuration)}
                 </p>
               </div>
@@ -220,7 +222,8 @@ const CallOverlay = () => {
           
         </div>
       )}
-    </div>
+      </div>
+    </Draggable>
   );
 };
 
