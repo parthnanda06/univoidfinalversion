@@ -6,9 +6,11 @@ import {
   HiOutlineSearch, HiOutlineCheckCircle, HiOutlineCheck,
   HiOutlinePencilAlt, HiOutlinePhone, HiOutlineVideoCamera, 
   HiOutlineInformationCircle, HiOutlineDotsVertical, HiOutlinePaperClip, 
-  HiOutlineEmojiHappy, HiPaperAirplane, HiOutlineDocumentText, HiOutlinePhotograph
+  HiOutlineEmojiHappy, HiPaperAirplane, HiOutlineDocumentText, HiOutlinePhotograph,
+  HiOutlineX
 } from 'react-icons/hi';
 import EmojiPicker from 'emoji-picker-react';
+import { getProfile } from '../services/api';
 
 /* ─── Relative "seen" time helper ───────────────────────── */
 const seenLabel = (seenAt) => {
@@ -43,6 +45,10 @@ const Messages = () => {
   const [text, setText] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState(null);
+
+  const [showNewMsgModal, setShowNewMsgModal] = useState(false);
+  const [connectionsList, setConnectionsList] = useState([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
 
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -135,6 +141,27 @@ const Messages = () => {
 
   const tabs = ['All', 'Unread', 'Groups', 'Requests'];
 
+  const handleNewMessageClick = async () => {
+    setShowNewMsgModal(true);
+    if (connectionsList.length === 0) {
+      setLoadingConnections(true);
+      try {
+        const res = await getProfile();
+        setConnectionsList(res.data.connections || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingConnections(false);
+      }
+    }
+  };
+
+  const handleStartChat = (connection) => {
+    openChat(connection);
+    setShowNewMsgModal(false);
+    setActiveChatId(String(connection._id));
+  };
+
   return (
     <div className="flex h-[calc(100vh-72px)] w-full bg-gray-50 overflow-hidden animate-fade-in">
       
@@ -146,7 +173,10 @@ const Messages = () => {
                <HiOutlineDocumentText className="w-6 h-6 text-gray-700" />
                Messages
             </h1>
-            <button className="w-9 h-9 rounded-xl border border-gray-100 flex items-center justify-center text-[#5c4dff] hover:bg-[#5c4dff]/5 transition-colors">
+            <button 
+              onClick={handleNewMessageClick}
+              className="w-9 h-9 rounded-xl border border-gray-100 flex items-center justify-center text-[#5c4dff] hover:bg-[#5c4dff]/5 transition-colors"
+            >
                <HiOutlinePencilAlt className="w-5 h-5" />
             </button>
           </div>
@@ -468,6 +498,66 @@ const Messages = () => {
                </div>
             </div>
          </div>
+      )}
+
+      {/* New Message Modal */}
+      {showNewMsgModal && (
+        <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center animate-fade-in p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[80vh] animate-scale-in">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">New Message</h2>
+              <button 
+                onClick={() => setShowNewMsgModal(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <HiOutlineX className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+               <div className="relative">
+                  <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                     type="text"
+                     placeholder="Search connections..."
+                     className="w-full bg-white border border-gray-200 rounded-xl py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5c4dff]/20 focus:border-[#5c4dff] transition-all"
+                  />
+               </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-2 no-scrollbar">
+              {loadingConnections ? (
+                <div className="flex justify-center p-8">
+                   <span className="w-6 h-6 border-2 border-[#5c4dff] border-t-transparent rounded-full animate-spin"></span>
+                </div>
+              ) : connectionsList.length === 0 ? (
+                <div className="text-center p-8 text-gray-500 text-sm">
+                  You don't have any connections yet.
+                </div>
+              ) : (
+                connectionsList.map(conn => (
+                  <button 
+                    key={conn._id}
+                    onClick={() => handleStartChat(conn)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl transition-colors text-left"
+                  >
+                    {conn.avatar ? (
+                      <img src={conn.avatar} alt={conn.name} className="w-10 h-10 rounded-full object-cover shadow-sm shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5c4dff] to-[#34d399] flex items-center justify-center text-white font-bold shrink-0">
+                        {conn.name?.charAt(0)?.toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-gray-900 truncate">{conn.name}</p>
+                      <p className="text-[11px] text-gray-500 truncate">{conn.headline || 'Student'}</p>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       )}
       
     </div>
