@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   HiArrowRight,
@@ -13,10 +13,12 @@ import {
   HiHeart,
   HiOutlineSearch,
   HiOutlineBell,
-  HiOutlineUsers
+  HiOutlineUsers,
+  HiX
 } from 'react-icons/hi';
 
 const Home = () => {
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   return (
     <div className="bg-white min-h-screen font-sans overflow-hidden">
       
@@ -51,9 +53,9 @@ const Home = () => {
               <Link to="/register" className="bg-[#5c4dff] hover:bg-[#4b3de0] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-[#5c4dff]/30 flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5">
                 Get Started <HiArrowRight/>
               </Link>
-              <Link to="#explore" className="bg-white border-2 border-gray-100 hover:border-gray-200 text-gray-800 px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-sm transition-all">
+              <button onClick={() => setIsVideoModalOpen(true)} className="bg-white border-2 border-gray-100 hover:border-gray-200 text-gray-800 px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-sm transition-all">
                  <HiPlay className="text-[#5c4dff] w-5 h-5"/> Explore UniVoid
-              </Link>
+              </button>
             </div>
             
             <div className="flex items-center gap-4">
@@ -514,6 +516,33 @@ const Home = () => {
           </div>
         </div>
       </footer>
+
+      {/* Video Modal */}
+      {isVideoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 sm:p-6" onClick={() => setIsVideoModalOpen(false)}>
+          <div className="bg-white rounded-3xl overflow-hidden max-w-5xl w-full relative shadow-2xl animate-in fade-in zoom-in duration-300" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 flex justify-between items-center bg-white border-b border-gray-100">
+              <h3 className="font-bold text-lg text-gray-900">Explore UniVoid</h3>
+              <button 
+                onClick={() => setIsVideoModalOpen(false)}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                <HiX className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="aspect-video bg-black">
+              <video 
+                className="w-full h-full object-contain"
+                controls
+                autoPlay
+              >
+                <source src="/univoidinfo.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
