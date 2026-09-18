@@ -413,16 +413,38 @@ const AIStudyBuddy = () => {
                   />
                   <div className="flex items-center justify-between px-2 md:px-3 pb-2 md:pb-3 mt-auto">
                     <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto custom-scrollbar">
-                      <button type="button" className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap">
+                      <button 
+                        type="button" 
+                        onClick={() => toast('Attachment feature coming soon!', { icon: '📎' })}
+                        className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap"
+                      >
                         <HiOutlinePaperClip className="text-base md:text-lg" /> <span className="hidden sm:inline">Attach</span>
                       </button>
-                      <button type="button" className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden sm:flex">
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setInput(prev => prev + (prev ? '\n' : '') + '$$ \n\n $$');
+                          setTimeout(() => textareaRef.current?.focus(), 0);
+                        }}
+                        className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden sm:flex"
+                      >
                         <HiOutlineCalculator className="text-base md:text-lg" /> Math
                       </button>
-                      <button type="button" className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden md:flex">
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setInput(prev => prev + (prev ? '\n' : '') + '```\n\n```');
+                          setTimeout(() => textareaRef.current?.focus(), 0);
+                        }}
+                        className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden md:flex"
+                      >
                         <HiOutlineCode className="text-base md:text-lg" /> Code
                       </button>
-                      <button type="button" className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden md:flex">
+                      <button 
+                        type="button" 
+                        onClick={() => toast('File upload coming soon!', { icon: '☁️' })}
+                        className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden md:flex"
+                      >
                         <HiOutlineCloudUpload className="text-base md:text-lg" /> Upload
                       </button>
                     </div>
