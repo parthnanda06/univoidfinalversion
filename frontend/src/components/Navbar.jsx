@@ -11,6 +11,26 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   
+  // Mock data for search
+  const mockUsers = [
+    { name: 'Parth Bhanushali', verified: true, role: 'AI/ML Enthusiast • Python • React', edu: 'Parul University • 4th Year CSE (AI)', img: 'https://i.pravatar.cc/150?img=11' },
+    { name: 'parth bhanushali', verified: false, role: 'Python Developer at 3iwebexperts', edu: 'Ahmedabad, Gujarat, India', img: 'https://i.pravatar.cc/150?img=12' },
+    { name: 'Parth Bhanushali', verified: false, role: 'Data Science • ML • Python', edu: 'Parul University • 3rd Year CSE', img: null },
+    { name: 'John Doe', verified: false, role: 'Software Engineer', edu: 'MIT • CS', img: 'https://i.pravatar.cc/150?img=13' },
+    { name: 'Jane Smith', verified: true, role: 'UI/UX Designer', edu: 'Stanford', img: 'https://i.pravatar.cc/150?img=14' }
+  ];
+
+  const mockPosts = [
+    { author: 'Parth Bhanushali', community: 'AI/ML Students', time: '2 days ago', content: 'Just completed my Python project for image classification using CNN...', icon: '</>' },
+    { author: 'Alice Johnson', community: 'Web Devs', time: '5 hours ago', content: 'Understanding React Server Components is finally clicking for me...', icon: '⚛️' }
+  ];
+
+  const mockCommunities = [
+    { name: 'Python Developers', initial: 'P', color: 'blue', members: '2.4K members • 156 online' },
+    { name: 'React Native Group', initial: 'R', color: 'indigo', members: '1.2K members • 45 online' },
+    { name: 'UI/UX Design', initial: 'U', color: 'pink', members: '5.6K members • 320 online' }
+  ];
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -130,11 +150,7 @@ const Navbar = () => {
                              </div>
                              
                              <div className="flex flex-col">
-                                {[
-                                   { name: 'Parth Bhanushali', verified: true, role: 'AI/ML Enthusiast • Python • React', edu: 'Parul University • 4th Year CSE (AI)', img: 'https://i.pravatar.cc/150?img=11' },
-                                   { name: 'parth bhanushali', verified: false, role: 'Python Developer at 3iwebexperts', edu: 'Ahmedabad, Gujarat, India', img: 'https://i.pravatar.cc/150?img=12' },
-                                   { name: 'Parth Bhanushali', verified: false, role: 'Data Science • ML • Python', edu: 'Parul University • 3rd Year CSE', img: null }
-                                ].map((person, i) => (
+                                {mockUsers.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map((person, i) => (
                                    <div key={i} className="flex items-start justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer group">
                                       <div className="flex items-start gap-3 min-w-0">
                                          {person.img ? (
@@ -167,23 +183,25 @@ const Navbar = () => {
                                 <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all posts →</button>
                              </div>
                              
-                             <div className="flex items-start justify-between px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
-                                <div className="flex items-start gap-3 min-w-0">
-                                   <img src="https://i.pravatar.cc/150?img=11" className="w-10 h-10 rounded-full object-cover shrink-0" alt="post author" />
-                                   <div className="min-w-0">
-                                      <p className="text-[12px] font-medium text-gray-600 truncate">
-                                         <strong className="text-gray-900 font-bold">Parth Bhanushali</strong> in <span className="text-[#5c4dff] font-bold">AI/ML Students</span>
-                                      </p>
-                                      <p className="text-[10px] text-gray-400 mb-1">2 days ago</p>
-                                      <p className="text-[11px] font-medium text-gray-700 line-clamp-1">
-                                         Just completed my Python project for image classification using CNN...
-                                      </p>
+                             {mockPosts.filter(p => p.content.toLowerCase().includes(searchQuery.toLowerCase()) || p.author.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2).map((post, i) => (
+                                <div key={i} className="flex items-start justify-between px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                   <div className="flex items-start gap-3 min-w-0">
+                                      <img src={`https://i.pravatar.cc/150?img=${i+20}`} className="w-10 h-10 rounded-full object-cover shrink-0" alt="post author" />
+                                      <div className="min-w-0">
+                                         <p className="text-[12px] font-medium text-gray-600 truncate">
+                                            <strong className="text-gray-900 font-bold">{post.author}</strong> in <span className="text-[#5c4dff] font-bold">{post.community}</span>
+                                         </p>
+                                         <p className="text-[10px] text-gray-400 mb-1">{post.time}</p>
+                                         <p className="text-[11px] font-medium text-gray-700 line-clamp-1">
+                                            {post.content}
+                                         </p>
+                                      </div>
+                                   </div>
+                                   <div className="w-12 h-10 bg-gray-900 rounded-lg ml-3 shrink-0 flex items-center justify-center overflow-hidden">
+                                      <span className="text-yellow-400 text-lg font-bold">{post.icon}</span>
                                    </div>
                                 </div>
-                                <div className="w-12 h-10 bg-gray-900 rounded-lg ml-3 shrink-0 flex items-center justify-center overflow-hidden">
-                                   <span className="text-yellow-400 text-2xl font-bold">{'</>'}</span>
-                                </div>
-                             </div>
+                             ))}
 
                              {/* Communities Section */}
                              <div className="px-4 pt-4 pb-2 flex items-center justify-between border-t border-gray-100 mt-1">
@@ -194,15 +212,17 @@ const Navbar = () => {
                                 <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all communities →</button>
                              </div>
                              
-                             <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 font-bold text-xl border border-blue-100 shrink-0">
-                                   P
+                             {mockCommunities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2).map((community, i) => (
+                                <div key={i} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                   <div className={`w-10 h-10 bg-${community.color}-50 rounded-full flex items-center justify-center text-${community.color}-500 font-bold text-xl border border-${community.color}-100 shrink-0`}>
+                                      {community.initial}
+                                   </div>
+                                   <div className="min-w-0">
+                                      <p className="text-[13px] font-bold text-gray-900 truncate">{community.name}</p>
+                                      <p className="text-[11px] text-gray-500 truncate">{community.members}</p>
+                                   </div>
                                 </div>
-                                <div className="min-w-0">
-                                   <p className="text-[13px] font-bold text-gray-900 truncate">Python Developers</p>
-                                   <p className="text-[11px] text-gray-500 truncate">2.4K members • 156 online</p>
-                                </div>
-                             </div>
+                             ))}
 
                              <div className="mt-2 border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
                                 <button onClick={() => handleSearchSubmit({preventDefault:()=>{}})} className="w-full text-left px-4 py-3 text-xs font-bold text-[#5c4dff] hover:bg-gray-100 transition-colors rounded-b-xl">
