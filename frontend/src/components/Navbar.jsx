@@ -138,98 +138,127 @@ const Navbar = () => {
                              </button>
                           </>
                        ) : (
-                          /* TYPING STATE: Suggestions (from Mockup) */
-                          <div className="flex flex-col">
-                             {/* People Section */}
-                             <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 text-gray-500">
-                                   <HiOutlineUser className="w-4 h-4" />
-                                   <span className="text-xs font-bold uppercase tracking-wider">People</span>
-                                </div>
-                                <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all people →</button>
-                             </div>
-                             
-                             <div className="flex flex-col">
-                                {mockUsers.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map((person, i) => (
-                                   <div key={i} className="flex items-start justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer group">
-                                      <div className="flex items-start gap-3 min-w-0">
-                                         {person.img ? (
-                                            <img src={person.img} className="w-10 h-10 rounded-full object-cover shrink-0" alt={person.name} />
-                                         ) : (
-                                            <div className="w-10 h-10 rounded-full bg-[#5c4dff]/10 text-[#5c4dff] font-bold flex items-center justify-center shrink-0">PB</div>
-                                         )}
-                                         <div className="min-w-0">
-                                            <p className="text-[13px] font-bold text-gray-900 flex items-center gap-1 truncate">
-                                               {person.name}
-                                               {person.verified && <span className="w-3.5 h-3.5 bg-[#5c4dff] text-white rounded-full flex items-center justify-center text-[8px]">✓</span>}
-                                            </p>
-                                            <p className="text-[11px] font-medium text-gray-600 truncate">{person.role}</p>
-                                            <p className="text-[10px] text-gray-400 truncate">{person.edu}</p>
+                          /* TYPING STATE: Suggestions */
+                          (() => {
+                             const filteredUsers = mockUsers.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3);
+                             const filteredPosts = mockPosts.filter(p => p.content.toLowerCase().includes(searchQuery.toLowerCase()) || p.author.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2);
+                             const filteredCommunities = mockCommunities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2);
+                             const hasResults = filteredUsers.length > 0 || filteredPosts.length > 0 || filteredCommunities.length > 0;
+
+                             return (
+                                <div className="flex flex-col">
+                                   {!hasResults ? (
+                                      <div className="px-4 py-8 flex flex-col items-center justify-center text-center">
+                                         <HiOutlineSearch className="w-10 h-10 text-gray-200 mb-3" />
+                                         <p className="text-[15px] font-bold text-gray-900">No results found for "{searchQuery}"</p>
+                                         <p className="text-[13px] text-gray-500 mt-1 mb-5">Try searching for something else or explore these topics:</p>
+                                         
+                                         <div className="flex flex-wrap gap-2 justify-center">
+                                            <button onClick={() => { setSearchQuery('python'); setShowSuggestions(true); }} className="px-4 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-full transition-colors border border-gray-100">Python</button>
+                                            <button onClick={() => { setSearchQuery('react'); setShowSuggestions(true); }} className="px-4 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-full transition-colors border border-gray-100">React</button>
+                                            <button onClick={() => { setSearchQuery('design'); setShowSuggestions(true); }} className="px-4 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-full transition-colors border border-gray-100">UI/UX Design</button>
                                          </div>
                                       </div>
-                                      <button className="bg-[#5c4dff]/10 text-[#5c4dff] hover:bg-[#5c4dff]/20 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors whitespace-nowrap shrink-0">
-                                         View Profile
-                                      </button>
-                                   </div>
-                                ))}
-                             </div>
+                                   ) : (
+                                      <>
+                                         {filteredUsers.length > 0 && (
+                                            <>
+                                               <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+                                                  <div className="flex items-center gap-1.5 text-gray-500">
+                                                     <HiOutlineUser className="w-4 h-4" />
+                                                     <span className="text-xs font-bold uppercase tracking-wider">People</span>
+                                                  </div>
+                                                  <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all people →</button>
+                                               </div>
+                                               <div className="flex flex-col">
+                                                  {filteredUsers.map((person, i) => (
+                                                     <div key={i} className="flex items-start justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                                        <div className="flex items-start gap-3 min-w-0">
+                                                           {person.img ? (
+                                                              <img src={person.img} className="w-10 h-10 rounded-full object-cover shrink-0" alt={person.name} />
+                                                           ) : (
+                                                              <div className="w-10 h-10 rounded-full bg-[#5c4dff]/10 text-[#5c4dff] font-bold flex items-center justify-center shrink-0">PB</div>
+                                                           )}
+                                                           <div className="min-w-0">
+                                                              <p className="text-[13px] font-bold text-gray-900 flex items-center gap-1 truncate">
+                                                                 {person.name}
+                                                                 {person.verified && <span className="w-3.5 h-3.5 bg-[#5c4dff] text-white rounded-full flex items-center justify-center text-[8px]">✓</span>}
+                                                              </p>
+                                                              <p className="text-[11px] font-medium text-gray-600 truncate">{person.role}</p>
+                                                              <p className="text-[10px] text-gray-400 truncate">{person.edu}</p>
+                                                           </div>
+                                                        </div>
+                                                        <button className="bg-[#5c4dff]/10 text-[#5c4dff] hover:bg-[#5c4dff]/20 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors whitespace-nowrap shrink-0">
+                                                           View Profile
+                                                        </button>
+                                                     </div>
+                                                  ))}
+                                               </div>
+                                            </>
+                                         )}
 
-                             {/* Posts Section */}
-                             <div className="px-4 pt-4 pb-2 flex items-center justify-between border-t border-gray-100 mt-1">
-                                <div className="flex items-center gap-1.5 text-gray-500">
-                                   <HiOutlineDocumentText className="w-4 h-4" />
-                                   <span className="text-xs font-bold uppercase tracking-wider">Posts</span>
-                                </div>
-                                <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all posts →</button>
-                             </div>
-                             
-                             {mockPosts.filter(p => p.content.toLowerCase().includes(searchQuery.toLowerCase()) || p.author.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2).map((post, i) => (
-                                <div key={i} className="flex items-start justify-between px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
-                                   <div className="flex items-start gap-3 min-w-0">
-                                      <img src={`https://i.pravatar.cc/150?img=${i+20}`} className="w-10 h-10 rounded-full object-cover shrink-0" alt="post author" />
-                                      <div className="min-w-0">
-                                         <p className="text-[12px] font-medium text-gray-600 truncate">
-                                            <strong className="text-gray-900 font-bold">{post.author}</strong> in <span className="text-[#5c4dff] font-bold">{post.community}</span>
-                                         </p>
-                                         <p className="text-[10px] text-gray-400 mb-1">{post.time}</p>
-                                         <p className="text-[11px] font-medium text-gray-700 line-clamp-1">
-                                            {post.content}
-                                         </p>
-                                      </div>
-                                   </div>
-                                   <div className="w-12 h-10 bg-gray-900 rounded-lg ml-3 shrink-0 flex items-center justify-center overflow-hidden">
-                                      <span className="text-yellow-400 text-lg font-bold">{post.icon}</span>
-                                   </div>
-                                </div>
-                             ))}
+                                         {filteredPosts.length > 0 && (
+                                            <>
+                                               <div className="px-4 pt-4 pb-2 flex items-center justify-between border-t border-gray-100 mt-1">
+                                                  <div className="flex items-center gap-1.5 text-gray-500">
+                                                     <HiOutlineDocumentText className="w-4 h-4" />
+                                                     <span className="text-xs font-bold uppercase tracking-wider">Posts</span>
+                                                  </div>
+                                                  <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all posts →</button>
+                                               </div>
+                                               {filteredPosts.map((post, i) => (
+                                                  <div key={i} className="flex items-start justify-between px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                                     <div className="flex items-start gap-3 min-w-0">
+                                                        <img src={`https://i.pravatar.cc/150?img=${i+20}`} className="w-10 h-10 rounded-full object-cover shrink-0" alt="post author" />
+                                                        <div className="min-w-0">
+                                                           <p className="text-[12px] font-medium text-gray-600 truncate">
+                                                              <strong className="text-gray-900 font-bold">{post.author}</strong> in <span className="text-[#5c4dff] font-bold">{post.community}</span>
+                                                           </p>
+                                                           <p className="text-[10px] text-gray-400 mb-1">{post.time}</p>
+                                                           <p className="text-[11px] font-medium text-gray-700 line-clamp-1">{post.content}</p>
+                                                        </div>
+                                                     </div>
+                                                     <div className="w-12 h-10 bg-gray-900 rounded-lg ml-3 shrink-0 flex items-center justify-center overflow-hidden">
+                                                        <span className="text-yellow-400 text-lg font-bold">{post.icon}</span>
+                                                     </div>
+                                                  </div>
+                                               ))}
+                                            </>
+                                         )}
 
-                             {/* Communities Section */}
-                             <div className="px-4 pt-4 pb-2 flex items-center justify-between border-t border-gray-100 mt-1">
-                                <div className="flex items-center gap-1.5 text-gray-500">
-                                   <HiOutlineUserGroup className="w-4 h-4" />
-                                   <span className="text-xs font-bold uppercase tracking-wider">Communities</span>
-                                </div>
-                                <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all communities →</button>
-                             </div>
-                             
-                             {mockCommunities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2).map((community, i) => (
-                                <div key={i} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
-                                   <div className={`w-10 h-10 bg-${community.color}-50 rounded-full flex items-center justify-center text-${community.color}-500 font-bold text-xl border border-${community.color}-100 shrink-0`}>
-                                      {community.initial}
-                                   </div>
-                                   <div className="min-w-0">
-                                      <p className="text-[13px] font-bold text-gray-900 truncate">{community.name}</p>
-                                      <p className="text-[11px] text-gray-500 truncate">{community.members}</p>
-                                   </div>
-                                </div>
-                             ))}
+                                         {filteredCommunities.length > 0 && (
+                                            <>
+                                               <div className="px-4 pt-4 pb-2 flex items-center justify-between border-t border-gray-100 mt-1">
+                                                  <div className="flex items-center gap-1.5 text-gray-500">
+                                                     <HiOutlineUserGroup className="w-4 h-4" />
+                                                     <span className="text-xs font-bold uppercase tracking-wider">Communities</span>
+                                                  </div>
+                                                  <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all communities →</button>
+                                               </div>
+                                               {filteredCommunities.map((community, i) => (
+                                                  <div key={i} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                                     <div className={`w-10 h-10 bg-${community.color}-50 rounded-full flex items-center justify-center text-${community.color}-500 font-bold text-xl border border-${community.color}-100 shrink-0`}>
+                                                        {community.initial}
+                                                     </div>
+                                                     <div className="min-w-0">
+                                                        <p className="text-[13px] font-bold text-gray-900 truncate">{community.name}</p>
+                                                        <p className="text-[11px] text-gray-500 truncate">{community.members}</p>
+                                                     </div>
+                                                  </div>
+                                               ))}
+                                            </>
+                                         )}
 
-                             <div className="mt-2 border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
-                                <button onClick={() => handleSearchSubmit({preventDefault:()=>{}})} className="w-full text-left px-4 py-3 text-xs font-bold text-[#5c4dff] hover:bg-gray-100 transition-colors rounded-b-xl">
-                                   See all results for "{searchQuery}" →
-                                </button>
-                             </div>
-                          </div>
+                                         <div className="mt-2 border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
+                                            <button onClick={() => handleSearchSubmit({preventDefault:()=>{}})} className="w-full text-left px-4 py-3 text-xs font-bold text-[#5c4dff] hover:bg-gray-100 transition-colors rounded-b-xl">
+                                               See all results for "{searchQuery}" →
+                                            </button>
+                                         </div>
+                                      </>
+                                   )}
+                                </div>
+                             );
+                          })()
                        )}
                     </div>
                  )}
@@ -350,43 +379,116 @@ const Navbar = () => {
                             null
                          ) : (
                             <div className="flex flex-col max-h-[60vh] overflow-y-auto">
-                               {/* People Section */}
-                               <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-                                  <div className="flex items-center gap-1.5 text-gray-500">
-                                     <HiOutlineUser className="w-4 h-4" />
-                                     <span className="text-xs font-bold uppercase tracking-wider">People</span>
-                                  </div>
-                               </div>
-                               
-                               <div className="flex flex-col">
-                                  {[
-                                     { name: 'Parth Bhanushali', verified: true, role: 'AI/ML Enthusiast • Python • React', edu: 'Parul University • 4th Year CSE (AI)', img: 'https://i.pravatar.cc/150?img=11' }
-                                  ].map((person, i) => (
-                                     <div key={i} className="flex items-start justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer group">
-                                        <div className="flex items-start gap-3 min-w-0">
-                                           {person.img ? (
-                                              <img src={person.img} className="w-10 h-10 rounded-full object-cover shrink-0" alt={person.name} />
-                                           ) : (
-                                              <div className="w-10 h-10 rounded-full bg-[#5c4dff]/10 text-[#5c4dff] font-bold flex items-center justify-center shrink-0">PB</div>
-                                           )}
-                                           <div className="min-w-0">
-                                              <p className="text-[13px] font-bold text-gray-900 flex items-center gap-1 truncate">
-                                                 {person.name}
-                                                 {person.verified && <span className="w-3.5 h-3.5 bg-[#5c4dff] text-white rounded-full flex items-center justify-center text-[8px]">✓</span>}
-                                              </p>
-                                              <p className="text-[11px] font-medium text-gray-600 truncate">{person.role}</p>
-                                           </div>
-                                        </div>
-                                     </div>
-                                  ))}
-                               </div>
-  
-                               <div className="mt-2 border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
-                                  <button onClick={() => handleSearchSubmit({preventDefault:()=>{}})} className="w-full text-left px-4 py-3 text-xs font-bold text-[#5c4dff] hover:bg-gray-100 transition-colors rounded-b-xl">
-                                     See all results for "{searchQuery}" →
-                                  </button>
-                               </div>
-                            </div>
+                          {(() => {
+                             const filteredUsers = mockUsers.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3);
+                             const filteredPosts = mockPosts.filter(p => p.content.toLowerCase().includes(searchQuery.toLowerCase()) || p.author.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2);
+                             const filteredCommunities = mockCommunities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 2);
+                             const hasResults = filteredUsers.length > 0 || filteredPosts.length > 0 || filteredCommunities.length > 0;
+
+                             return (
+                                <>
+                                   {!hasResults ? (
+                                      <div className="px-4 py-8 flex flex-col items-center justify-center text-center">
+                                         <HiOutlineSearch className="w-10 h-10 text-gray-200 mb-3" />
+                                         <p className="text-[15px] font-bold text-gray-900">No results found for "{searchQuery}"</p>
+                                         <p className="text-[13px] text-gray-500 mt-1 mb-5">Try searching for something else or explore these topics:</p>
+                                         
+                                         <div className="flex flex-wrap gap-2 justify-center">
+                                            <button onClick={() => { setSearchQuery('python'); setShowSuggestions(true); }} className="px-4 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-full transition-colors border border-gray-100">Python</button>
+                                            <button onClick={() => { setSearchQuery('react'); setShowSuggestions(true); }} className="px-4 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-full transition-colors border border-gray-100">React</button>
+                                            <button onClick={() => { setSearchQuery('design'); setShowSuggestions(true); }} className="px-4 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-full transition-colors border border-gray-100">UI/UX Design</button>
+                                         </div>
+                                      </div>
+                                   ) : (
+                                      <>
+                                         {filteredUsers.length > 0 && (
+                                            <>
+                                               <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+                                                  <div className="flex items-center gap-1.5 text-gray-500">
+                                                     <HiOutlineUser className="w-4 h-4" />
+                                                     <span className="text-xs font-bold uppercase tracking-wider">People</span>
+                                                  </div>
+                                               </div>
+                                               <div className="flex flex-col">
+                                                  {filteredUsers.map((person, i) => (
+                                                     <div key={i} className="flex items-start justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                                        <div className="flex items-start gap-3 min-w-0">
+                                                           {person.img ? (
+                                                              <img src={person.img} className="w-10 h-10 rounded-full object-cover shrink-0" alt={person.name} />
+                                                           ) : (
+                                                              <div className="w-10 h-10 rounded-full bg-[#5c4dff]/10 text-[#5c4dff] font-bold flex items-center justify-center shrink-0">PB</div>
+                                                           )}
+                                                           <div className="min-w-0">
+                                                              <p className="text-[13px] font-bold text-gray-900 flex items-center gap-1 truncate">
+                                                                 {person.name}
+                                                                 {person.verified && <span className="w-3.5 h-3.5 bg-[#5c4dff] text-white rounded-full flex items-center justify-center text-[8px]">✓</span>}
+                                                              </p>
+                                                              <p className="text-[11px] font-medium text-gray-600 truncate">{person.role}</p>
+                                                           </div>
+                                                        </div>
+                                                     </div>
+                                                  ))}
+                                               </div>
+                                            </>
+                                         )}
+
+                                         {filteredPosts.length > 0 && (
+                                            <>
+                                               <div className="px-4 pt-4 pb-2 flex items-center justify-between border-t border-gray-100 mt-1">
+                                                  <div className="flex items-center gap-1.5 text-gray-500">
+                                                     <HiOutlineDocumentText className="w-4 h-4" />
+                                                     <span className="text-xs font-bold uppercase tracking-wider">Posts</span>
+                                                  </div>
+                                               </div>
+                                               {filteredPosts.map((post, i) => (
+                                                  <div key={i} className="flex items-start justify-between px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                                     <div className="flex items-start gap-3 min-w-0">
+                                                        <img src={`https://i.pravatar.cc/150?img=${i+20}`} className="w-10 h-10 rounded-full object-cover shrink-0" alt="post author" />
+                                                        <div className="min-w-0">
+                                                           <p className="text-[12px] font-medium text-gray-600 truncate">
+                                                              <strong className="text-gray-900 font-bold">{post.author}</strong> in <span className="text-[#5c4dff] font-bold">{post.community}</span>
+                                                           </p>
+                                                           <p className="text-[10px] text-gray-400 mb-1">{post.time}</p>
+                                                        </div>
+                                                     </div>
+                                                  </div>
+                                               ))}
+                                            </>
+                                         )}
+
+                                         {filteredCommunities.length > 0 && (
+                                            <>
+                                               <div className="px-4 pt-4 pb-2 flex items-center justify-between border-t border-gray-100 mt-1">
+                                                  <div className="flex items-center gap-1.5 text-gray-500">
+                                                     <HiOutlineUserGroup className="w-4 h-4" />
+                                                     <span className="text-xs font-bold uppercase tracking-wider">Communities</span>
+                                                  </div>
+                                               </div>
+                                               {filteredCommunities.map((community, i) => (
+                                                  <div key={i} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer group">
+                                                     <div className={`w-10 h-10 bg-${community.color}-50 rounded-full flex items-center justify-center text-${community.color}-500 font-bold text-xl border border-${community.color}-100 shrink-0`}>
+                                                        {community.initial}
+                                                     </div>
+                                                     <div className="min-w-0">
+                                                        <p className="text-[13px] font-bold text-gray-900 truncate">{community.name}</p>
+                                                        <p className="text-[11px] text-gray-500 truncate">{community.members}</p>
+                                                     </div>
+                                                  </div>
+                                               ))}
+                                            </>
+                                         )}
+
+                                         <div className="mt-2 border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
+                                            <button onClick={() => handleSearchSubmit({preventDefault:()=>{}})} className="w-full text-left px-4 py-3 text-xs font-bold text-[#5c4dff] hover:bg-gray-100 transition-colors rounded-b-xl">
+                                               See all results for "{searchQuery}" →
+                                            </button>
+                                         </div>
+                                      </>
+                                   )}
+                                </>
+                             );
+                          })()}
+                       </div>
                          )}
                       </div>
                    )}
