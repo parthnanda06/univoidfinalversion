@@ -243,7 +243,7 @@ const People = () => {
           id="people-search-input"
           type="search"
           placeholder="Search by name, college, branch, skill, or location…"
-          className="input-field pl-12 pr-4 py-3.5 text-base w-full rounded-2xl"
+          className="input-field !pl-12 pr-4 py-3.5 text-base w-full rounded-2xl"
           value={query}
           onChange={e => setQuery(e.target.value)}
           autoFocus
