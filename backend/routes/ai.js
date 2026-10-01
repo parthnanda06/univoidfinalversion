@@ -51,15 +51,20 @@ router.get('/sessions/:id', protect, async (req, res) => {
   }
 });
 
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const upload = multer({ storage: multer.memoryStorage() });
+
 // @route   POST /api/ai/ask
 // @desc    Ask AI Study Buddy and save to a session
 // @access  Private
-router.post('/ask', protect, async (req, res) => {
-  const { prompt, sessionId } = req.body;
+router.post('/ask', protect, upload.single('file'), async (req, res) => {
+  let { prompt, sessionId } = req.body;
 
-  if (!prompt) {
-    return res.status(400).json({ message: 'Prompt is required' });
+  if (!prompt && !req.file) {
+    return res.status(400).json({ message: 'Prompt or file is required' });
   }
+  if (!prompt) prompt = 'Please explain this attached file.';
 
   try {
     let chat;
@@ -92,22 +97,45 @@ router.post('/ask', protect, async (req, res) => {
       content: msg.content,
     }));
 
-    const messages = [
+    let messages = [
       {
         role: 'system',
         content: 'You are AI Study Buddy, a helpful and knowledgeable assistant for UniVoid, a student ecosystem platform. You help students with their academic doubts, coding problems, and career advice. Keep your responses concise, accurate, and encouraging.',
       },
       ...contextMessages,
-      {
-        role: 'user',
-        content: prompt,
-      },
     ];
 
-    // 3. Call Groq API
+    let modelToUse = 'qwen/qwen3.8-27b';
+
+    // 3. Handle file attachments
+    if (req.file) {
+      if (req.file.mimetype === 'application/pdf') {
+        const pdfData = await pdfParse(req.file.buffer);
+        messages.push({
+          role: 'user',
+          content: `[Attached PDF Document: ${req.file.originalname}]\n\nDocument Content:\n${pdfData.text}\n\nUser Query: ${prompt}`,
+        });
+      } else if (req.file.mimetype.startsWith('image/')) {
+        modelToUse = 'llama-3.2-11b-vision-preview'; // Groq vision model
+        const base64Image = req.file.buffer.toString('base64');
+        messages.push({
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: `data:${req.file.mimetype};base64,${base64Image}` } }
+          ]
+        });
+      } else {
+        return res.status(400).json({ message: 'Unsupported file type. Please upload a PDF or image.' });
+      }
+    } else {
+      messages.push({ role: 'user', content: prompt });
+    }
+
+    // 4. Call Groq API
     const chatCompletion = await groq.chat.completions.create({
       messages: messages,
-      model: 'qwen/qwen3.8-27b',
+      model: modelToUse,
       temperature: 0.7,
       max_tokens: 1024,
       top_p: 1,
@@ -116,11 +144,12 @@ router.post('/ask', protect, async (req, res) => {
 
     const responseText = chatCompletion.choices[0]?.message?.content || "";
 
-    // 4. Save both messages to DB
-    historyMessages.push({ role: 'user', content: prompt });
+    // 5. Save both messages to DB (don't save huge file content to DB)
+    const userDbContent = req.file ? `📎 **Attached:** ${req.file.originalname}\n\n${prompt}` : prompt;
+    historyMessages.push({ role: 'user', content: userDbContent });
     historyMessages.push({ role: 'assistant', content: responseText });
     
-    // 5. Generate smart title on 2nd user message
+    // 6. Generate smart title on 2nd user message
     let finalTitle = chat.title;
     const userMessageCount = historyMessages.filter(m => m.role === 'user').length;
     

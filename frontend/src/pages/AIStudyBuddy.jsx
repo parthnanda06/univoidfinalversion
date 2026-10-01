@@ -130,16 +130,34 @@ const AIStudyBuddy = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (loading || (!input.trim() && !selectedFile)) return;
 
-    const userMessage = { role: 'user', content: input };
+    const userDisplayContent = selectedFile 
+      ? `📎 **Attached:** ${selectedFile.name}\n\n${input}` 
+      : input;
+
+    const userMessage = { role: 'user', content: userDisplayContent };
     setMessages(prev => [...prev, userMessage]);
+    
+    const currentInput = input;
+    const currentFile = selectedFile;
+    const currentSession = activeSession;
+    
     setInput('');
+    setSelectedFile(null);
     setLoading(true);
 
     try {
-      const payload = { prompt: input };
-      if (activeSession) payload.sessionId = activeSession;
+      let payload;
+      if (currentFile) {
+        payload = new FormData();
+        payload.append('prompt', currentInput || 'Explain this file.');
+        if (currentSession) payload.append('sessionId', currentSession);
+        payload.append('file', currentFile);
+      } else {
+        payload = { prompt: currentInput };
+        if (currentSession) payload.sessionId = currentSession;
+      }
       
       const { data } = await askAI(payload);
       

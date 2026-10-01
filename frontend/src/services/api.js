@@ -124,7 +124,12 @@ export const sendChatMessage = (userId, text) => API.post(`/chat/${userId}`, { t
 // AI Study Buddy
 export const getAISessions = () => API.get('/ai/sessions');
 export const getAIHistory = (sessionId) => API.get(`/ai/sessions/${sessionId}`);
-export const askAI = (data) => API.post('/ai/ask', data);
+export const askAI = (data) => {
+  if (data instanceof FormData) {
+    return API.post('/ai/ask', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+  }
+  return API.post('/ai/ask', data);
+};
 export const updateAISession = (sessionId, data) => API.put(`/ai/sessions/${sessionId}`, data);
 export const clearAIHistory = (sessionId) => API.delete(`/ai/sessions/${sessionId}`);
 
