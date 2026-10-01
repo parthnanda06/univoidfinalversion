@@ -174,7 +174,8 @@ const AIStudyBuddy = () => {
       }
     } catch (error) {
       console.error('AI Error:', error);
-      toast.error('AI Study Buddy is having some trouble. Please try again.');
+      const errorMsg = error.response?.data?.message || 'AI Study Buddy is having some trouble. Please try again.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

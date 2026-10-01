@@ -110,11 +110,18 @@ router.post('/ask', protect, upload.single('file'), async (req, res) => {
     // 3. Handle file attachments
     if (req.file) {
       if (req.file.mimetype === 'application/pdf') {
-        const pdfData = await pdfParse(req.file.buffer);
-        messages.push({
-          role: 'user',
-          content: `[Attached PDF Document: ${req.file.originalname}]\n\nDocument Content:\n${pdfData.text}\n\nUser Query: ${prompt}`,
-        });
+        try {
+          const pdfData = await pdfParse(req.file.buffer);
+          // Truncate text to avoid exceeding LLM context window (approx 15000 chars ~ 3500 tokens)
+          const safeText = pdfData.text ? pdfData.text.substring(0, 15000) : '';
+          messages.push({
+            role: 'user',
+            content: `[Attached PDF Document: ${req.file.originalname}]\n\nDocument Content (Excerpt):\n${safeText}\n\nUser Query: ${prompt}`,
+          });
+        } catch (err) {
+          console.error("PDF Parsing error", err);
+          return res.status(400).json({ message: 'Could not read this PDF file. It might be corrupted or encrypted.' });
+        }
       } else if (req.file.mimetype.startsWith('image/')) {
         modelToUse = 'llama-3.2-11b-vision-preview'; // Groq vision model
         const base64Image = req.file.buffer.toString('base64');
@@ -133,14 +140,20 @@ router.post('/ask', protect, upload.single('file'), async (req, res) => {
     }
 
     // 4. Call Groq API
-    const chatCompletion = await groq.chat.completions.create({
-      messages: messages,
-      model: modelToUse,
-      temperature: 0.7,
-      max_tokens: 1024,
-      top_p: 1,
-      stream: false,
-    });
+    let chatCompletion;
+    try {
+      chatCompletion = await groq.chat.completions.create({
+        messages: messages,
+        model: modelToUse,
+        temperature: 0.7,
+        max_tokens: 1024,
+        top_p: 1,
+        stream: false,
+      });
+    } catch (groqErr) {
+      console.error("Groq API Error details:", groqErr.error || groqErr);
+      return res.status(500).json({ message: groqErr.error?.error?.message || 'The AI model is overloaded or rejected the file. Try a smaller file.' });
+    }
 
     const responseText = chatCompletion.choices[0]?.message?.content || "";
 
