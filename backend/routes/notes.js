@@ -78,18 +78,58 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+const multer = require('multer');
+const { createClient } = require('@supabase/supabase-js');
+const upload = multer({ storage: multer.memoryStorage() });
+
+const getSupabaseClient = () => {
+  const supabaseUrl = process.env.SUPABASE_URL || '';
+  const supabaseKey = process.env.SUPABASE_KEY || '';
+  if (!supabaseUrl || !supabaseKey) return null;
+  return createClient(supabaseUrl, supabaseKey);
+};
+
 // @route   POST /api/notes
-router.post('/', protect, [
-  body('title').trim().notEmpty().withMessage('Title is required'),
-  body('subject').trim().notEmpty().withMessage('Subject is required'),
-], async (req, res) => {
+router.post('/', protect, upload.single('file'), async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ message: errors.array()[0].msg });
+    const { title, subject, description, college, fileType } = req.body;
+    let fileUrl = req.body.fileUrl;
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ message: 'Title is required' });
+    }
+    if (!subject || !subject.trim()) {
+      return res.status(400).json({ message: 'Subject is required' });
     }
 
-    const { title, subject, description, college, fileUrl, fileType } = req.body;
+    if (req.file) {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        return res.status(500).json({ message: 'Supabase storage is not configured on the server.' });
+      }
+
+      const supabaseBucket = process.env.SUPABASE_BUCKET || 'posts-media';
+      const fileExt = req.file.originalname.split('.').pop();
+      const fileName = `notes/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+      const { error } = await supabase.storage
+        .from(supabaseBucket)
+        .upload(fileName, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Supabase upload error:', error);
+        return res.status(500).json({ message: `Error uploading file: ${error.message}` });
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(supabaseBucket)
+        .getPublicUrl(fileName);
+
+      fileUrl = publicUrlData.publicUrl;
+    }
 
     const note = await prisma.note.create({
       data: {
@@ -98,7 +138,7 @@ router.post('/', protect, [
         description: description || '',
         college: college || req.user.college || '',
         fileUrl: fileUrl || '',
-        fileType: fileType || 'link',
+        fileType: fileType || (req.file ? 'pdf' : 'link'),
         uploaderId: req.user.id,
       },
       include: { uploadedBy: { select: { id: true, name: true, college: true } } }

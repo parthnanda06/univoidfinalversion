@@ -68,7 +68,12 @@ export const connectUser = (id) => API.post(`/users/${id}/connect`);
 // Notes
 export const getNotes = (params) => API.get('/notes', { params });
 export const getNote = (id) => API.get(`/notes/${id}`);
-export const createNote = (data) => API.post('/notes', data);
+export const createNote = (data) => {
+  if (data instanceof FormData) {
+    return API.post('/notes', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+  }
+  return API.post('/notes', data);
+};
 export const deleteNote = (id) => API.delete(`/notes/${id}`);
 export const trackDownload = (id) => API.put(`/notes/${id}/download`);
 
@@ -121,3 +126,6 @@ export const updateAISession = (sessionId, data) => API.put(`/ai/sessions/${sess
 export const clearAIHistory = (sessionId) => API.delete(`/ai/sessions/${sessionId}`);
 
 export default API;
+
+export const getFeedPosts = () => API.get('/posts/feed');
+export const getUserPosts = (userId) => API.get(`/posts/user/${userId}`);

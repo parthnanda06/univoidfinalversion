@@ -12,6 +12,7 @@ const Notes = () => {
   const [subjectFilter, setSubjectFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', subject: '', description: '', college: '', fileUrl: '', fileType: 'link' });
+  const [uploadFile, setUploadFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchNotes = () => {
@@ -35,12 +36,26 @@ const Notes = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!form.title || !form.subject) return toast.error('Title and subject are required');
+    if (form.fileType === 'pdf' && !uploadFile) return toast.error('Please select a PDF file to upload');
     setSubmitting(true);
     try {
-      const { data } = await createNote(form);
+      let payload;
+      if (form.fileType === 'pdf' && uploadFile) {
+        payload = new FormData();
+        payload.append('title', form.title);
+        payload.append('subject', form.subject);
+        payload.append('description', form.description);
+        payload.append('college', form.college);
+        payload.append('fileType', 'pdf');
+        payload.append('file', uploadFile);
+      } else {
+        payload = form;
+      }
+      const { data } = await createNote(payload);
       setNotes([data, ...notes]);
       setShowModal(false);
       setForm({ title: '', subject: '', description: '', college: '', fileUrl: '', fileType: 'link' });
+      setUploadFile(null);
       toast.success('Note uploaded!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create note');
@@ -255,15 +270,27 @@ const Notes = () => {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-surface-600 mb-1.5">File URL / Link</label>
-                  <input type="url" className="input-field" placeholder="https://..." value={form.fileUrl} onChange={(e) => setForm({ ...form, fileUrl: e.target.value })} />
+                  {form.fileType === 'pdf' ? (
+                    <>
+                      <label className="block text-xs font-medium text-surface-600 mb-1.5">Upload PDF File</label>
+                      <input type="file" accept=".pdf" className="input-field" onChange={(e) => setUploadFile(e.target.files[0])} />
+                    </>
+                  ) : (
+                    <>
+                      <label className="block text-xs font-medium text-surface-600 mb-1.5">File URL / Link</label>
+                      <input type="url" className="input-field" placeholder="https://..." value={form.fileUrl} onChange={(e) => setForm({ ...form, fileUrl: e.target.value })} />
+                    </>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-surface-600 mb-1.5">Type</label>
-                  <select className="input-field" value={form.fileType} onChange={(e) => setForm({ ...form, fileType: e.target.value })}>
+                  <select className="input-field" value={form.fileType} onChange={(e) => {
+                    setForm({ ...form, fileType: e.target.value });
+                    if (e.target.value !== 'pdf') setUploadFile(null);
+                  }}>
                     <option value="link">Link</option>
-                    <option value="pdf">PDF</option>
-                    <option value="other">Other</option>
+                    <option value="pdf">PDF Upload</option>
+                    <option value="other">Other Link</option>
                   </select>
                 </div>
               </div>

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { updateProfile, getProfile, addProject, updateProject, deleteProject, addExperience, updateExperience, deleteExperience, getGlobalPosts, createGlobalPost, deleteGlobalPost, updateGlobalPost } from '../services/api';
+import { updateProfile, getProfile, addProject, updateProject, deleteProject, addExperience, updateExperience, deleteExperience, getGlobalPosts, getUserPosts, createGlobalPost, deleteGlobalPost, updateGlobalPost } from '../services/api';
 import toast from 'react-hot-toast';
 import { HiOutlinePencil, HiOutlineCheck, HiOutlineX, HiOutlineLocationMarker,
   HiOutlineGlobeAlt, HiOutlineBriefcase, HiOutlineAcademicCap,
