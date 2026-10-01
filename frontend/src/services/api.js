@@ -68,9 +68,12 @@ export const connectUser = (id) => API.post(`/users/${id}/connect`);
 // Notes
 export const getNotes = (params) => API.get('/notes', { params });
 export const getNote = (id) => API.get(`/notes/${id}`);
-export const createNote = (data) => {
+export const createNote = (data, onUploadProgress) => {
   if (data instanceof FormData) {
-    return API.post('/notes', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return API.post('/notes', data, { 
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress
+    });
   }
   return API.post('/notes', data);
 };

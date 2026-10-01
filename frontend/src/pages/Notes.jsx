@@ -13,6 +13,7 @@ const Notes = () => {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ title: '', subject: '', description: '', college: '', fileUrl: '', fileType: 'link' });
   const [uploadFile, setUploadFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchNotes = () => {
@@ -51,16 +52,23 @@ const Notes = () => {
       } else {
         payload = form;
       }
-      const { data } = await createNote(payload);
+      const { data } = await createNote(payload, (progressEvent) => {
+        if (progressEvent.total) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+        }
+      });
       setNotes([data, ...notes]);
       setShowModal(false);
       setForm({ title: '', subject: '', description: '', college: '', fileUrl: '', fileType: 'link' });
       setUploadFile(null);
+      setUploadProgress(0);
       toast.success('Note uploaded!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create note');
     } finally {
       setSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -294,8 +302,13 @@ const Notes = () => {
                   </select>
                 </div>
               </div>
-              <button type="submit" disabled={submitting} className="btn-primary w-full justify-center py-3">
-                {submitting ? 'Uploading...' : 'Upload Note'}
+              <button type="submit" disabled={submitting} className="btn-primary w-full justify-center py-3 relative overflow-hidden">
+                {submitting && form.fileType === 'pdf' && uploadProgress > 0 && (
+                  <div className="absolute left-0 top-0 bottom-0 bg-white/20 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                )}
+                <span className="relative z-10">
+                  {submitting ? (form.fileType === 'pdf' && uploadProgress > 0 ? `Uploading... ${uploadProgress}%` : 'Uploading...') : 'Upload Note'}
+                </span>
               </button>
             </form>
           </div>
