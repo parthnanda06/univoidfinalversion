@@ -20,6 +20,15 @@ const AIStudyBuddy = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+      toast.success(`Attached: ${e.target.files[0].name}`);
+    }
+  };
   
   const [activeSession, setActiveSession] = useState(null);
   const [sessions, setSessions] = useState([]);
@@ -391,67 +400,58 @@ const AIStudyBuddy = () => {
               <div className="max-w-4xl mx-auto relative">
                 <form 
                   onSubmit={handleSubmit}
-                  className="bg-white border border-gray-200 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-[#5c4dff]/20 focus-within:border-[#5c4dff] transition-all flex flex-col"
+                  className="bg-white border border-gray-200 rounded-3xl shadow-sm focus-within:ring-2 focus-within:ring-[#5c4dff]/20 focus-within:border-[#5c4dff] transition-all flex flex-col"
                 >
-                  <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={(e) => {
-                      setInput(e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSubmit(e);
-                      }
-                    }}
-                    placeholder="Ask me anything..."
-                    className="w-full bg-transparent p-3 md:p-4 text-[14px] md:text-[15px] text-gray-900 placeholder-gray-400 resize-none min-h-[50px] md:min-h-[60px] max-h-[150px] overflow-y-auto focus:outline-none custom-scrollbar"
-                    rows="1"
-                  />
-                  <div className="flex items-center justify-between px-2 md:px-3 pb-2 md:pb-3 mt-auto">
-                    <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto custom-scrollbar">
-                      <button 
-                        type="button" 
-                        onClick={() => toast('Attachment feature coming soon!', { icon: '📎' })}
-                        className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap"
-                      >
-                        <HiOutlinePaperClip className="text-base md:text-lg" /> <span className="hidden sm:inline">Attach</span>
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          setInput(prev => prev + (prev ? '\n' : '') + '$$ \n\n $$');
-                          setTimeout(() => textareaRef.current?.focus(), 0);
-                        }}
-                        className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden sm:flex"
-                      >
-                        <HiOutlineCalculator className="text-base md:text-lg" /> Math
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          setInput(prev => prev + (prev ? '\n' : '') + '```\n\n```');
-                          setTimeout(() => textareaRef.current?.focus(), 0);
-                        }}
-                        className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden md:flex"
-                      >
-                        <HiOutlineCode className="text-base md:text-lg" /> Code
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => toast('File upload coming soon!', { icon: '☁️' })}
-                        className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors text-[11px] md:text-xs font-semibold whitespace-nowrap hidden md:flex"
-                      >
-                        <HiOutlineCloudUpload className="text-base md:text-lg" /> Upload
-                      </button>
+                  {selectedFile && (
+                    <div className="px-4 pt-3 flex items-center gap-2">
+                      <div className="bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg flex items-center gap-2">
+                        <HiOutlinePaperClip className="text-gray-500" />
+                        <span className="truncate max-w-[150px]">{selectedFile.name}</span>
+                        <button type="button" onClick={() => setSelectedFile(null)} className="text-gray-400 hover:text-red-500 ml-1">
+                          <HiX />
+                        </button>
+                      </div>
                     </div>
+                  )}
+                  <div className="flex items-end px-2 py-2 md:px-3">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      onChange={handleFileSelect} 
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors flex-shrink-0 mb-0.5"
+                      title="Attach file"
+                    >
+                      <HiOutlinePlus className="text-xl md:text-2xl" />
+                    </button>
+                    
+                    <textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={(e) => {
+                        setInput(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px';
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSubmit(e);
+                        }
+                      }}
+                      placeholder="Ask ai study buddy..."
+                      className="flex-1 bg-transparent p-3 text-[14px] md:text-[15px] text-gray-900 placeholder-gray-400 resize-none min-h-[44px] max-h-[150px] overflow-y-auto focus:outline-none custom-scrollbar self-center"
+                      rows="1"
+                    />
+                    
                     <button
                       type="submit"
-                      disabled={loading || !input.trim()}
-                      className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-[#5c4dff] flex items-center justify-center text-white hover:bg-[#4a3ddf] disabled:opacity-50 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-md shadow-[#5c4dff]/20 ml-2 flex-shrink-0"
+                      disabled={loading || (!input.trim() && !selectedFile)}
+                      className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#5c4dff] flex items-center justify-center text-white hover:bg-[#4a3ddf] disabled:opacity-50 disabled:bg-gray-200 disabled:text-gray-400 transition-all flex-shrink-0 mb-0.5"
                     >
                       <HiPaperAirplane className="rotate-90 ml-0.5 md:ml-1 text-sm md:text-base" />
                     </button>
