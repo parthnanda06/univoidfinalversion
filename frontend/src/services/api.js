@@ -41,7 +41,7 @@ export const getProfile = () => API.get('/users/profile');
 // Posts (Global)
 export const getGlobalPosts = () => API.get('/posts');
 export const createGlobalPost = (data) => API.post('/posts', data, {
-  headers: { 'Content-Type': 'multipart/form-data' }
+  headers: { 'Content-Type': undefined }
 });
 export const updateGlobalPost = (id, data) => API.put(`/posts/${id}`, data);
 export const deleteGlobalPost = (id) => API.delete(`/posts/${id}`);
@@ -71,7 +71,7 @@ export const getNote = (id) => API.get(`/notes/${id}`);
 export const createNote = (data, onUploadProgress) => {
   if (data instanceof FormData) {
     return API.post('/notes', data, { 
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined },
       onUploadProgress
     });
   }
