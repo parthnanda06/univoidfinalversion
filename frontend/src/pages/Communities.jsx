@@ -125,6 +125,44 @@ const Communities = () => {
         </div>
       ) : (
         <>
+          {/* Joined Communities */}
+          {communities.filter(c => isMember(c)).length > 0 && (
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[17px] font-bold text-gray-900">Joined Communities</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {communities.filter(c => isMember(c)).map((c, i) => {
+                  const style = featuredStyles[i % featuredStyles.length];
+                  return (
+                    <div key={c._id} className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group flex flex-col">
+                      <div className={`h-24 w-full bg-gradient-to-br ${style.bg} relative overflow-hidden`}>
+                         <div className="absolute top-[-20px] right-[-20px] w-24 h-24 bg-white/20 rounded-full blur-xl"></div>
+                         <div className="absolute bottom-[-20px] left-[-20px] w-20 h-20 bg-white/20 rounded-full blur-lg"></div>
+                      </div>
+                      <div className="px-5 pb-5 pt-0 relative flex-1 flex flex-col">
+                        <div className={`w-14 h-14 rounded-full ${style.iconBg} border-4 border-white flex items-center justify-center text-xl shadow-sm -mt-7 mb-3 relative z-10 mx-auto`}>
+                          {c.icon}
+                        </div>
+                        <h3 className="text-sm font-bold text-gray-900 text-center mb-1 group-hover:text-[#5c4dff] transition-colors">{c.name}</h3>
+                        <p className="text-[11px] font-medium text-gray-500 text-center line-clamp-2 mb-4 flex-1">{c.description}</p>
+                        
+                        <div className="flex justify-between items-center text-[10px] font-bold text-gray-500 mb-4 px-2">
+                           <span className="flex items-center gap-1"><HiOutlineUserGroup className="w-3.5 h-3.5"/> {(c.memberCount || 0).toLocaleString()} members</span>
+                           <span className="text-emerald-500 flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Online</span>
+                        </div>
+                        
+                        <button onClick={() => navigate(`/communities/${c._id}`)} className="w-full py-2 rounded-xl bg-[#5c4dff]/10 text-[#5c4dff] font-bold text-[11px] hover:bg-[#5c4dff]/20 transition-colors">
+                          Enter Community
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Featured Communities */}
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">

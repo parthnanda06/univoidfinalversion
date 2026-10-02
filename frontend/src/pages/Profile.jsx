@@ -460,8 +460,11 @@ const Profile = () => {
     toast.success('Post bookmarked!');
   };
 
-  const handleSharePost = () => {
+  const handleSharePost = (postId) => {
+    const link = `${window.location.origin}/post/${postId}`;
+    navigator.clipboard.writeText(link);
     toast.success('Link copied to clipboard!');
+    setOpenPostDropdownId(null);
   };
 
   const cancelEdit = () => {
@@ -622,7 +625,7 @@ const Profile = () => {
 
             {/* Stats Row */}
             <div className="mt-8 pt-6 border-t border-gray-100">
-              <div className="flex flex-wrap justify-between sm:justify-start sm:gap-16 gap-6 px-2 sm:px-8">
+              <div className="flex sm:flex-wrap justify-between sm:justify-start sm:gap-16 gap-4 px-2 sm:px-8 overflow-x-auto no-scrollbar pb-2">
                 <StatItem label="Connections" value={profileData?.connections?.length || 12} onClick={() => setDrawer('connections')} />
                 <StatItem label="Communities" value={profileData?.joinedCommunities?.length || 8} onClick={() => setDrawer('communities')} />
                 <StatItem label="Notes" value={24} />
@@ -743,8 +746,8 @@ const Profile = () => {
                          
                          {openPostDropdownId === post.id && (
                            <div className="absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-10">
-                              <button onClick={() => { setOpenPostDropdownId(null); toast.success('Link copied to share!'); }} className="w-full text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-[#5c4dff] flex items-center gap-2">
-                                 <HiOutlineShare className="w-4 h-4" /> Share via
+                              <button onClick={() => handleSharePost(post.id)} className="w-full text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-[#5c4dff] flex items-center gap-2">
+                                 <HiOutlineShare className="w-4 h-4" /> Copy Link
                               </button>
                               {post.authorId === user?.id && (
                                 <>
