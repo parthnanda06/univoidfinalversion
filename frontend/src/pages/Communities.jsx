@@ -22,12 +22,13 @@ const Communities = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const isMember = (community) => community.members?.some(m => (m._id || m) === user?._id);
+  const isMember = (community) => community.members?.some(m => (m._id || m?.id || m) === (user?._id || user?.id));
 
   const handleJoin = async (id) => {
     try {
       const { data } = await joinCommunity(id);
-      setCommunities(communities.map(c => c._id === id ? { ...c, members: [...c.members, user._id], memberCount: data.memberCount } : c));
+      const userId = user?._id || user?.id;
+      setCommunities(communities.map(c => c._id === id ? { ...c, members: [...(c.members || []), userId], memberCount: data.memberCount } : c));
       toast.success('Joined community!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to join');
@@ -37,7 +38,8 @@ const Communities = () => {
   const handleLeave = async (id) => {
     try {
       const { data } = await leaveCommunity(id);
-      setCommunities(communities.map(c => c._id === id ? { ...c, members: c.members.filter(m => (m._id || m) !== user._id), memberCount: data.memberCount } : c));
+      const userId = user?._id || user?.id;
+      setCommunities(communities.map(c => c._id === id ? { ...c, members: c.members.filter(m => (m._id || m?.id || m) !== userId), memberCount: data.memberCount } : c));
       toast.success('Left community');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to leave');
