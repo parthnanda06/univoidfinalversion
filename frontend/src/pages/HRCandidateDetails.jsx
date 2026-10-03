@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { HiOutlineUser, HiOutlineMail, HiOutlinePhone, HiOutlineDocumentText, HiOutlineCalendar, HiOutlineExternalLink } from 'react-icons/hi';
+import { HiOutlineUser, HiOutlineMail, HiOutlinePhone, HiOutlineDocumentText, HiOutlineCalendar, HiOutlineExternalLink, HiOutlineLocationMarker, HiDotsVertical, HiDownload } from 'react-icons/hi';
 
 const HRCandidateDetails = () => {
   const { id } = useParams();
@@ -21,125 +21,141 @@ const HRCandidateDetails = () => {
       <div className="mb-6">
         <button onClick={() => navigate(-1)} className="text-xs font-bold text-gray-500 hover:text-gray-900 mb-4 inline-flex items-center gap-1">
           ← Back to Candidates
-        </button>
-        <div className="flex items-center justify-between">
+        </button         <div className="flex items-center justify-between">
            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-400 to-[#5c4dff] flex items-center justify-center text-white font-black text-2xl shadow-sm">
-                 A
-              </div>
+              <img src="https://i.pravatar.cc/150?u=10" className="w-16 h-16 rounded-full object-cover shadow-sm" alt="Aarav Mehta" />
               <div>
                  <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                    Aarav Mehta
-                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                     status === 'Applied' ? 'bg-gray-100 text-gray-700' :
-                     status === 'Screening' ? 'bg-blue-100 text-blue-700' :
-                     status === 'Shortlisted' ? 'bg-indigo-100 text-indigo-700' :
-                     status === 'Interview' ? 'bg-amber-100 text-amber-700' :
-                     status === 'Offer' ? 'bg-emerald-100 text-emerald-700' :
-                     status === 'Hired' ? 'bg-emerald-200 text-emerald-800' :
-                     'bg-red-100 text-red-700'
-                   }`}>{status}</span>
+                   <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">New</span>
                  </h1>
-                 <p className="text-sm text-gray-500 font-medium">Applied for: <span className="font-bold text-gray-900">Frontend Developer Intern</span></p>
+                 <p className="text-sm text-[#5c4dff] font-bold mt-1">Frontend Developer Intern</p>
+                 <p className="text-xs text-gray-500 font-medium">Applied on 30 Sep 2026</p>
               </div>
            </div>
            
            <div className="flex gap-2">
-              <button onClick={() => setStatus('Rejected')} className="bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
+              <button className="bg-[#5c4dff] text-white hover:bg-[#4a3ddf] px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
+                Move to Screening
+              </button>
+              <button className="bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
                 Reject
               </button>
-              
-              {status === 'Applied' && (
-                <button onClick={() => handleAction('Screening')} className="bg-[#5c4dff] text-white hover:bg-[#4a3ddf] px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
-                  Move to Screening
-                </button>
-              )}
-              {status === 'Screening' && (
-                <button onClick={() => handleAction('Shortlisted')} className="bg-[#5c4dff] text-white hover:bg-[#4a3ddf] px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
-                  Shortlist Candidate
-                </button>
-              )}
-              {status === 'Shortlisted' && (
-                <button onClick={() => handleAction('Interview')} className="bg-[#5c4dff] text-white hover:bg-[#4a3ddf] px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
-                  Schedule Interview
-                </button>
-              )}
-              {status === 'Interview' && (
-                <button onClick={() => handleAction('Offer')} className="bg-[#5c4dff] text-white hover:bg-[#4a3ddf] px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
-                  Move to Offer
-                </button>
-              )}
-              {status === 'Offer' && (
-                <button onClick={() => handleAction('Hired')} className="bg-emerald-500 text-white hover:bg-emerald-600 px-4 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
-                  Mark as Hired
-                </button>
-              )}
+              <button className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 p-2 rounded-lg font-bold text-xs shadow-sm transition-colors">
+                <HiDotsVertical className="w-4 h-4" />
+              </button>
            </div>
         </div>
       </div>
 
+      <div className="flex gap-6 border-b border-gray-200 mb-6">
+        {['Profile', 'Application', 'Resume', 'Interviews', 'Notes'].map(tab => (
+           <button 
+             key={tab} 
+             className={`px-4 py-3 text-sm font-bold capitalize transition-colors border-b-2 -mb-px ${tab === 'Profile' ? 'text-[#5c4dff] border-[#5c4dff]' : 'text-gray-500 border-transparent hover:text-gray-900'}`}
+           >
+             {tab}
+           </button>
+        ))}
+      </div>v>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-         <div className="lg:col-span-2 space-y-6">
+         {/* Left Column */}
+         <div className="space-y-6">
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-               <h3 className="font-bold text-gray-900 mb-4">Candidate Profile</h3>
-               <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div>
-                     <p className="text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><HiOutlineMail /> Email</p>
-                     <p className="text-sm font-bold text-gray-900">aarav.mehta@example.com</p>
+               <h3 className="font-bold text-gray-900 mb-4 text-sm">Personal Information</h3>
+               <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                     <HiOutlineMail className="w-4 h-4" /> aarav.mehta@example.com
                   </div>
-                  <div>
-                     <p className="text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><HiOutlinePhone /> Phone</p>
-                     <p className="text-sm font-bold text-gray-900">+91 98765 43210</p>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                     <HiOutlinePhone className="w-4 h-4" /> +91 98765 43210
                   </div>
-                  <div>
-                     <p className="text-xs font-medium text-gray-500 mb-1 flex items-center gap-1"><HiOutlineExternalLink /> Portfolio</p>
-                     <a href="#" className="text-sm font-bold text-[#5c4dff] hover:underline">github.com/aaravm</a>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                     <HiOutlineLocationMarker className="w-4 h-4" /> Vadodara, Gujarat
                   </div>
                </div>
                
-               <h4 className="font-bold text-gray-900 mb-2 text-sm">Skills</h4>
+               <h3 className="font-bold text-gray-900 mb-4 text-sm">Education</h3>
+               <div className="mb-6">
+                 <p className="font-bold text-gray-900 text-sm">Parul University</p>
+                 <p className="text-xs text-gray-500 font-medium mt-1">B.Tech in Computer Science</p>
+                 <p className="text-xs text-gray-500 font-medium">3rd Year • CGPA: 8.2</p>
+               </div>
+
+               <h3 className="font-bold text-gray-900 mb-4 text-sm">Skills</h3>
                <div className="flex gap-2 mb-6 flex-wrap">
-                  {['React', 'JavaScript', 'HTML/CSS', 'Tailwind', 'Git'].map(s => (
-                     <span key={s} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs font-bold">{s}</span>
+                  {['React', 'JavaScript', 'Tailwind CSS', 'HTML', 'CSS', 'Git'].map(s => (
+                     <span key={s} className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md text-[10px] font-bold border border-blue-100">{s}</span>
                   ))}
                </div>
-               
-               <h4 className="font-bold text-gray-900 mb-2 text-sm">Resume</h4>
-               <div className="flex items-center justify-between border border-gray-200 rounded-xl p-4 bg-gray-50">
-                  <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-red-100 text-red-500 rounded-lg flex items-center justify-center">
-                        <HiOutlineDocumentText className="w-6 h-6" />
-                     </div>
-                     <div>
-                        <p className="font-bold text-gray-900 text-sm">Aarav_Mehta_Resume.pdf</p>
-                        <p className="text-xs text-gray-500 font-medium">1.2 MB • Uploaded 20 Sep 2026</p>
-                     </div>
-                  </div>
-                  <button className="text-sm font-bold text-[#5c4dff] hover:underline">View</button>
+
+               <h3 className="font-bold text-gray-900 mb-4 text-sm">Links</h3>
+               <div className="flex gap-4">
+                  <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-700 hover:text-[#5c4dff] transition-colors"><HiOutlineExternalLink /> GitHub</a>
+                  <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-700 hover:text-[#5c4dff] transition-colors"><HiOutlineExternalLink /> Portfolio</a>
+                  <a href="#" className="flex items-center gap-1 text-sm font-bold text-gray-700 hover:text-[#5c4dff] transition-colors"><HiOutlineExternalLink /> LinkedIn</a>
                </div>
             </div>
          </div>
          
+         {/* Middle Column */}
          <div className="space-y-6">
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-               <h3 className="font-bold text-gray-900 mb-4">Application History</h3>
-               <div className="relative border-l border-gray-200 ml-3 space-y-6 pb-2">
+               <h3 className="font-bold text-gray-900 mb-6 text-sm">Application Status</h3>
+               <div className="relative border-l border-gray-200 ml-3 space-y-8 pb-2">
                   <div className="relative">
-                     <div className="absolute -left-[21px] top-0.5 w-3 h-3 rounded-full bg-[#5c4dff] ring-4 ring-white"></div>
+                     <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-[#5c4dff] ring-4 ring-white"></div>
                      <div className="pl-4">
                         <p className="text-sm font-bold text-gray-900">Applied</p>
-                        <p className="text-xs text-gray-500 font-medium flex items-center gap-1 mt-0.5"><HiOutlineCalendar className="w-3.5 h-3.5" /> 20 Sep 2026</p>
+                        <p className="text-xs text-gray-500 font-medium mt-0.5">30 Sep 2026, 10:24 AM</p>
                      </div>
                   </div>
-                  {status !== 'Applied' && (
-                  <div className="relative">
-                     <div className="absolute -left-[21px] top-0.5 w-3 h-3 rounded-full bg-[#5c4dff] ring-4 ring-white"></div>
-                     <div className="pl-4">
-                        <p className="text-sm font-bold text-gray-900">Moved to Screening</p>
-                        <p className="text-xs text-gray-500 font-medium flex items-center gap-1 mt-0.5"><HiOutlineCalendar className="w-3.5 h-3.5" /> 21 Sep 2026</p>
+                  {['Screening', 'Shortlisted', 'Interview', 'Offer', 'Hired'].map(step => (
+                     <div key={step} className="relative">
+                        <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-white border-2 border-gray-300 ring-4 ring-white"></div>
+                        <div className="pl-4">
+                           <p className="text-sm font-bold text-gray-400">{step}</p>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+            </div>
+         </div>
+
+         {/* Right Column */}
+         <div className="space-y-6">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+               <h3 className="font-bold text-gray-900 mb-4 text-sm">Resume</h3>
+               <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 mb-4">
+                  <div className="flex items-center gap-3 mb-4">
+                     <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                        <HiOutlineDocumentText className="w-6 h-6" />
+                     </div>
+                     <div>
+                        <p className="font-bold text-gray-900 text-xs">Aarav_Mehta_Resume.pdf</p>
+                        <p className="text-[10px] text-gray-500 font-medium">2.4 MB</p>
                      </div>
                   </div>
-                  )}
+                  <div className="flex gap-2">
+                     <button className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors text-center">View</button>
+                     <button className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-2 rounded-lg font-bold text-xs shadow-sm transition-colors text-center">Download</button>
+                  </div>
+               </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+               <h3 className="font-bold text-gray-900 mb-4 text-sm">Quick Actions</h3>
+               <div className="space-y-3">
+                  <button className="w-full bg-[#5c4dff] text-white hover:bg-[#4a3ddf] py-2.5 rounded-lg font-bold text-xs shadow-sm transition-colors text-center">
+                     Move to Screening
+                  </button>
+                  <button className="w-full bg-white text-red-600 border border-red-200 hover:bg-red-50 py-2.5 rounded-lg font-bold text-xs shadow-sm transition-colors text-center">
+                     Reject
+                  </button>
+                  <button className="w-full bg-white text-[#5c4dff] border border-gray-200 hover:bg-gray-50 py-2.5 rounded-lg font-bold text-xs shadow-sm transition-colors text-center">
+                     Add Note
+                  </button>
                </div>
             </div>
          </div>

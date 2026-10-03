@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { 
   HiOutlineBriefcase, HiOutlineUserGroup, HiOutlineUser, 
   HiOutlineCalendar, HiOutlineDocumentText, HiDotsVertical,
-  HiOutlineClock
+  HiOutlineClock, HiOutlineBadgeCheck
 } from 'react-icons/hi';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -71,7 +71,7 @@ const HRDashboard = () => {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <MetricCard 
           icon={HiOutlineBriefcase} iconBg="bg-blue-50" iconColor="text-blue-600"
           value="12" title="Active Jobs" subtitle="5 Drafts • 2 Paused" trend="20%" trendUp={true}
@@ -86,16 +86,20 @@ const HRDashboard = () => {
         />
         <MetricCard 
           icon={HiOutlineCalendar} iconBg="bg-purple-50" iconColor="text-purple-600"
-          value="24" title="Interviews" subtitle="12 Upcoming" trend="33%" trendUp={true}
+          value="24" title="Interviews" subtitle="12 Upcoming" trend="20%" trendUp={true}
         />
         <MetricCard 
-          icon={HiOutlineDocumentText} iconBg="bg-emerald-50" iconColor="text-emerald-600"
-          value="6" title="Offers" subtitle="1.8% conversion" trend="50%" trendUp={true}
+          icon={HiOutlineDocumentText} iconBg="bg-orange-50" iconColor="text-orange-600"
+          value="6" title="Offers" subtitle="1.8% conversion" trend="30%" trendUp={false}
+        />
+        <MetricCard 
+          icon={HiOutlineBadgeCheck} iconBg="bg-cyan-50" iconColor="text-cyan-600"
+          value="4" title="Hired" subtitle="1.2% conversion" trend="33%" trendUp={true}
         />
       </div>
 
-      {/* Second Row: Funnel, Trend, Active Jobs */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      {/* Second Row: Funnel, Trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         
         {/* Hiring Funnel */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm col-span-1">
@@ -155,7 +159,12 @@ const HRDashboard = () => {
             </ResponsiveContainer>
           </div>
         </div>
+        
+      </div>
 
+      {/* Third Row (Moved Active Jobs here) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        
         {/* Active Jobs */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm col-span-1 flex flex-col">
           <div className="flex justify-between items-center mb-6">
@@ -185,11 +194,9 @@ const HRDashboard = () => {
             ))}
           </div>
         </div>
-        
-      </div>
 
-      {/* Third Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      {/* Third Row (continued) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 mt-6">
         
         {/* Applications by Job */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm col-span-1">
