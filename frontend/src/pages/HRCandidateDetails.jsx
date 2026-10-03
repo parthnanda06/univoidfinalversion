@@ -21,7 +21,8 @@ const HRCandidateDetails = () => {
       <div className="mb-6">
         <button onClick={() => navigate(-1)} className="text-xs font-bold text-gray-500 hover:text-gray-900 mb-4 inline-flex items-center gap-1">
           ← Back to Candidates
-        </button         <div className="flex items-center justify-between">
+        </button>
+        <div className="flex items-center justify-between">
            <div className="flex items-center gap-4">
               <img src="https://i.pravatar.cc/150?u=10" className="w-16 h-16 rounded-full object-cover shadow-sm" alt="Aarav Mehta" />
               <div>
@@ -57,7 +58,7 @@ const HRCandidateDetails = () => {
              {tab}
            </button>
         ))}
-      </div>v>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
          {/* Left Column */}
