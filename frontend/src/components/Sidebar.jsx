@@ -19,6 +19,15 @@ const Sidebar = () => {
     { to: '/profile',   label: 'My Profile',      icon: HiOutlineUser },
   ];
 
+  if (user?.originalRole === 'hr') {
+    studentNavItems.unshift({
+      to: '/hr-dashboard',
+      label: 'Switch to HR',
+      icon: HiOutlineViewGrid,
+      action: 'switch-to-hr'
+    });
+  }
+
   const hrNavItems = [
     { to: '/dashboard', label: 'Univoid Dashboard', icon: HiOutlineViewGrid, action: 'switch-to-student' },
     { to: '/hr-dashboard',  label: 'HR Dashboard',  icon: HiOutlineViewGrid },
@@ -57,7 +66,9 @@ const Sidebar = () => {
             to={to}
             onClick={(e) => {
               if (action === 'switch-to-student') {
-                setUser({ ...user, role: 'student' });
+                setUser({ ...user, role: 'student', originalRole: user.role });
+              } else if (action === 'switch-to-hr') {
+                setUser({ ...user, role: 'hr' });
               }
             }}
             className={({ isActive }) =>
