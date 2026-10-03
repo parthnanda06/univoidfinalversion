@@ -8,9 +8,15 @@ import {
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import ApplyJobModal from '../components/ApplyJobModal';
+import HRJobs from './HRJobs';
 
 const Jobs = () => {
   const { user } = useAuth();
+  
+  if (user?.role === 'hr') {
+    return <HRJobs />;
+  }
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

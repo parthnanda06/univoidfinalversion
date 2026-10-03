@@ -20,6 +20,9 @@ import UserProfile from './pages/UserProfile';
 import Messages from './pages/Messages';
 import Jobs from './pages/Jobs';
 import AIStudyBuddy from './pages/AIStudyBuddy';
+import HRAddJob from './pages/HRAddJob';
+import HRJobDetails from './pages/HRJobDetails';
+import HRCandidateDetails from './pages/HRCandidateDetails';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -65,6 +68,13 @@ function App() {
               <Route path="/people/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
+              <Route path="/jobs/new" element={<ProtectedRoute><HRAddJob /></ProtectedRoute>} />
+              <Route path="/jobs/:id" element={<ProtectedRoute><HRJobDetails /></ProtectedRoute>} />
+              <Route path="/candidates" element={<ProtectedRoute><div className="p-8 font-bold text-gray-500">Global Candidates View (Across all jobs)</div></ProtectedRoute>} />
+              <Route path="/candidates/:id" element={<ProtectedRoute><HRCandidateDetails /></ProtectedRoute>} />
+              <Route path="/interviews" element={<ProtectedRoute><div className="p-8 font-bold text-gray-500">Global Interviews View (Across all jobs)</div></ProtectedRoute>} />
+              <Route path="/offers" element={<ProtectedRoute><div className="p-8 font-bold text-gray-500">Global Offers View (Across all jobs)</div></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><div className="p-8 font-bold text-gray-500">Global Analytics View</div></ProtectedRoute>} />
               <Route path="/ai-study-buddy" element={<ProtectedRoute><AIStudyBuddy /></ProtectedRoute>} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
