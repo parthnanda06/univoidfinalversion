@@ -20,7 +20,8 @@ const Sidebar = () => {
   ];
 
   const hrNavItems = [
-    { to: '/dashboard',  label: 'Dashboard',  icon: HiOutlineViewGrid },
+    { to: '/univoid-dashboard', label: 'Univoid Dashboard', icon: HiOutlineViewGrid },
+    { to: '/dashboard',  label: 'HR Dashboard',  icon: HiOutlineViewGrid },
     { to: '/jobs',       label: 'Jobs',       icon: HiOutlineUserGroup },
     { to: '/offers',     label: 'Offers',     icon: HiOutlineBookOpen },
   ];

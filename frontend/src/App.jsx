@@ -61,6 +61,7 @@ function App() {
               <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
               <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} />
               <Route path="/dashboard" element={<ProtectedRoute>{user?.role === 'hr' ? <HRDashboard /> : <Dashboard />}</ProtectedRoute>} />
+              <Route path="/univoid-dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
               <Route path="/communities" element={<ProtectedRoute><Communities /></ProtectedRoute>} />
               <Route path="/communities/:id" element={<ProtectedRoute><CommunityDetail /></ProtectedRoute>} />
