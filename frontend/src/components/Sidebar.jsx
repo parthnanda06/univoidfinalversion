@@ -5,7 +5,7 @@ import { HiOutlineViewGrid, HiOutlineBookOpen, HiOutlineUserGroup, HiOutlineCale
 import { HiOutlineSparkles } from 'react-icons/hi2';
 
 const Sidebar = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { unreadTotal } = useChat();
 
   const studentNavItems = [
@@ -20,8 +20,8 @@ const Sidebar = () => {
   ];
 
   const hrNavItems = [
-    { to: '/univoid-dashboard', label: 'Univoid Dashboard', icon: HiOutlineViewGrid },
-    { to: '/dashboard',  label: 'HR Dashboard',  icon: HiOutlineViewGrid },
+    { to: '/dashboard', label: 'Univoid Dashboard', icon: HiOutlineViewGrid, action: 'switch-to-student' },
+    { to: '/hr-dashboard',  label: 'HR Dashboard',  icon: HiOutlineViewGrid },
     { to: '/jobs',       label: 'Jobs',       icon: HiOutlineUserGroup },
     { to: '/offers',     label: 'Offers',     icon: HiOutlineBookOpen },
   ];
@@ -51,10 +51,15 @@ const Sidebar = () => {
         {user?.role === 'hr' && (
            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-2 mb-2 ml-4">Hiring</p>
         )}
-        {navItems.map(({ to, label, icon: Icon, badge }) => (
+        {navItems.map(({ to, label, icon: Icon, badge, action }, idx) => (
           <NavLink
-            key={to}
+            key={label + idx}
             to={to}
+            onClick={(e) => {
+              if (action === 'switch-to-student') {
+                setUser({ ...user, role: 'student' });
+              }
+            }}
             className={({ isActive }) =>
               `flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[14px] font-semibold transition-all duration-200 group ${
                 isActive
