@@ -4,11 +4,16 @@ import { useAuth } from '../context/AuthContext';
 import { getDashboard } from '../services/api';
 import { HiOutlineArrowRight, HiSparkles, HiOutlineBriefcase, HiOutlineUserGroup, HiOutlineCalendar, HiOutlineDocumentText, HiOutlineVideoCamera, HiOutlineLocationMarker, HiBookmark } from 'react-icons/hi';
 import { HiOutlineUserPlus } from 'react-icons/hi2';
+import HRDashboard from './HRDashboard';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  if (user?.role === 'hr') {
+    return <HRDashboard />;
+  }
 
   useEffect(() => {
     getDashboard()

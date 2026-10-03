@@ -8,16 +8,27 @@ const Sidebar = () => {
   const { user } = useAuth();
   const { unreadTotal } = useChat();
 
-  const navItems = [
+  const studentNavItems = [
     { to: '/dashboard', label: 'Dashboard',      icon: HiOutlineViewGrid },
     { to: '/notes',     label: 'Study Notes',     icon: HiOutlineBookOpen },
     { to: '/communities',label:'Communities',     icon: HiOutlineUserGroup },
     { to: '/events',    label: 'Events',          icon: HiOutlineCalendar },
-    { to: '/jobs',      label: user?.role === 'hr' ? 'Manage Jobs' : 'Opportunities', icon: HiOutlineBriefcase },
+    { to: '/jobs',      label: 'Opportunities',   icon: HiOutlineBriefcase },
     { to: '/messages',  label: 'Messages',        icon: HiOutlineChatAlt2, badge: unreadTotal },
     { to: '/ai-study-buddy', label: 'AI Study Buddy', icon: HiSparkles },
     { to: '/profile',   label: 'My Profile',      icon: HiOutlineUser },
   ];
+
+  const hrNavItems = [
+    { to: '/dashboard',  label: 'Dashboard',  icon: HiOutlineViewGrid },
+    { to: '/jobs',       label: 'Jobs',       icon: HiOutlineUserGroup },
+    { to: '/candidates', label: 'Candidates', icon: HiOutlineUser },
+    { to: '/interviews', label: 'Interviews', icon: HiOutlineCalendar },
+    { to: '/offers',     label: 'Offers',     icon: HiOutlineBookOpen },
+    { to: '/analytics',  label: 'Analytics',  icon: HiOutlineViewGrid },
+  ];
+
+  const navItems = user?.role === 'hr' ? hrNavItems : studentNavItems;
 
   return (
     <aside className="hidden lg:flex fixed left-0 top-[72px] bottom-0 w-64 flex-col bg-white border-r border-gray-100 z-40 overflow-y-auto custom-scrollbar">
@@ -39,6 +50,9 @@ const Sidebar = () => {
 
       {/* Nav */}
       <nav className="flex-1 px-4 py-4 space-y-1.5">
+        {user?.role === 'hr' && (
+           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-2 mb-2 ml-4">Hiring</p>
+        )}
         {navItems.map(({ to, label, icon: Icon, badge }) => (
           <NavLink
             key={to}
@@ -63,18 +77,20 @@ const Sidebar = () => {
       </nav>
 
       {/* Pro Upgrade Card (From Mockup) */}
-      <div className="p-5 mt-auto mb-4 mx-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100/50">
-        <p className="text-xs font-semibold text-gray-500 mb-1">Unlock more with</p>
-        <p className="text-[15px] font-bold text-[#5c4dff] flex items-center gap-1 mb-3">
-          UniVoid Pro <HiSparkles className="text-orange-400" />
-        </p>
-        <p className="text-[11px] text-gray-600 mb-4 font-medium leading-relaxed">
-          Get advanced AI help, unlimited notes, and premium features.
-        </p>
-        <button className="w-full bg-[#5c4dff] hover:bg-[#4a3ddf] text-white text-xs font-bold py-2.5 rounded-xl shadow-md shadow-[#5c4dff]/20 transition-all hover:-translate-y-0.5">
-          Upgrade Now →
-        </button>
-      </div>
+      {user?.role !== 'hr' && (
+        <div className="p-5 mt-auto mb-4 mx-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100/50">
+          <p className="text-xs font-semibold text-gray-500 mb-1">Unlock more with</p>
+          <p className="text-[15px] font-bold text-[#5c4dff] flex items-center gap-1 mb-3">
+            UniVoid Pro <HiSparkles className="text-orange-400" />
+          </p>
+          <p className="text-[11px] text-gray-600 mb-4 font-medium leading-relaxed">
+            Get advanced AI help, unlimited notes, and premium features.
+          </p>
+          <button className="w-full bg-[#5c4dff] hover:bg-[#4a3ddf] text-white text-xs font-bold py-2.5 rounded-xl shadow-md shadow-[#5c4dff]/20 transition-all hover:-translate-y-0.5">
+            Upgrade Now →
+          </button>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="px-5 pb-5 pt-2">
