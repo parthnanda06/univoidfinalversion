@@ -98,7 +98,7 @@ npm run dev
 
 ### Authentication
 - JWT-based signup/login
-- Role-based access (Student, Admin)
+- Role-based access (Student, HR)
 - Protected routes
 
 ### Study Notes
