@@ -7,9 +7,9 @@ A full-stack MVP that combines study materials, student communities, events, and
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React (Vite), Tailwind CSS v4, Axios, React Router |
-| **Backend** | Node.js, Express.js |
-| **Database** | MongoDB (Mongoose) |
-| **Auth** | JWT + bcrypt |
+| **Backend** | Node.js, Express.js, Prisma ORM |
+| **Database** | PostgreSQL / MySQL (via Prisma) |
+| **Auth** | Supabase Auth / JWT |
 
 ---
 
@@ -17,26 +17,22 @@ A full-stack MVP that combines study materials, student communities, events, and
 
 ```
 univoid/
-├── client/                    # React Frontend
+├── frontend/                  # React Frontend
 │   ├── src/
 │   │   ├── components/        # Navbar, Sidebar
 │   │   ├── context/           # AuthContext (JWT state)
-│   │   ├── pages/             # Home, Login, Register, Dashboard,
-│   │   │                        Notes, Communities, Events, Profile
+│   │   ├── pages/             # Home, Login, Register, Dashboard, HR pages
 │   │   ├── services/          # API service (Axios)
 │   │   ├── App.jsx            # Routes & layout
-│   │   ├── main.jsx           # Entry point
-│   │   └── index.css          # Design system (Tailwind + custom)
-│   ├── index.html
-│   ├── vite.config.js
-│   └── package.json
+│   │   └── main.jsx           # Entry point
+│   ├── package.json
+│   └── vite.config.js
 │
-├── server/                    # Express Backend
-│   ├── config/db.js           # MongoDB connection
-│   ├── middleware/auth.js     # JWT + admin middleware
-│   ├── models/                # User, Note, Community, Post, Event
+├── backend/                   # Express Backend
+│   ├── prisma/                # Prisma schema & migrations
+│   ├── middleware/auth.js     # JWT middleware
 │   ├── routes/                # auth, users, notes, communities, events
-│   ├── seed.js                # Sample data seeder
+│   ├── prismaClient.js        # Prisma client instance
 │   ├── server.js              # Express entry point
 │   ├── .env                   # Environment variables
 │   └── package.json
@@ -56,46 +52,40 @@ univoid/
 
 ```bash
 # Backend
-cd server
+cd backend
 npm install
 
 # Frontend
-cd ../client
+cd ../frontend
 npm install
 ```
 
 ### 2. Configure environment
 
-Edit `server/.env`:
+Edit `backend/.env` with your database URL and Supabase keys:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/univoid
+DATABASE_URL="postgresql://user:password@localhost:5432/univoid"
 JWT_SECRET=your_secret_key_here
-JWT_EXPIRE=7d
 ```
 
-### 3. Seed sample data
+### 3. Run migrations
 
 ```bash
-cd server
-npm run seed
+cd backend
+npx prisma migrate dev
 ```
-
-This creates:
-- **Admin user**: `admin@univoid.com` / `admin123`
-- **Student user**: `rahul@test.com` / `test123`
-- 6 study notes, 4 communities, 4 posts, 4 events
 
 ### 4. Run the app
 
 ```bash
 # Terminal 1 — Backend
-cd server
+cd backend
 npm run dev
 
 # Terminal 2 — Frontend
-cd client
+cd frontend
 npm run dev
 ```
 
@@ -122,9 +112,15 @@ npm run dev
 - Like & comment on posts
 
 ### Events
-- Admin-only event creation
+- Community event creation (any user can add events)
 - Student registration
 - External link support
+
+### HR & Recruitment (New!)
+- Dedicated HR Dashboard for managing jobs and applications
+- Multi-tab Job Details & Candidate Details views
+- Role-switching: HR users can instantly toggle to the normal Student view
+- Responsive Offers management interface
 
 ### Dashboard
 - Personalized feed
@@ -157,7 +153,7 @@ npm run dev
 | POST | `/api/communities/posts/:id/like` | ✅ | Toggle like |
 | POST | `/api/communities/posts/:id/comment` | ✅ | Add comment |
 | GET | `/api/events` | — | List events |
-| POST | `/api/events` | 🔒 Admin | Create event |
+| POST | `/api/events` | ✅ | Create event |
 | POST | `/api/events/:id/register` | ✅ | Register |
 | GET | `/api/dashboard` | — | Feed data |
 
