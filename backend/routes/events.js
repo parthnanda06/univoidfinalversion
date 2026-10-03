@@ -49,7 +49,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', protect, adminOnly, [
+router.post('/', protect, [
   body('title').trim().notEmpty().withMessage('Title required'),
   body('date').notEmpty().withMessage('Date required'),
 ], async (req, res) => {
@@ -82,10 +82,12 @@ router.post('/', protect, adminOnly, [
   }
 });
 
-router.delete('/:id', protect, adminOnly, async (req, res) => {
+router.delete('/:id', protect, async (req, res) => {
   try {
     const event = await prisma.event.findUnique({ where: { id: req.params.id } });
     if (!event) return res.status(404).json({ message: 'Event not found' });
+    
+    if (event.creatorId !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
     
     await prisma.event.delete({ where: { id: req.params.id } });
     res.json({ message: 'Event deleted' });
