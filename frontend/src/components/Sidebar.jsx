@@ -22,10 +22,7 @@ const Sidebar = () => {
   const hrNavItems = [
     { to: '/dashboard',  label: 'Dashboard',  icon: HiOutlineViewGrid },
     { to: '/jobs',       label: 'Jobs',       icon: HiOutlineUserGroup },
-    { to: '/candidates', label: 'Candidates', icon: HiOutlineUser },
-    { to: '/interviews', label: 'Interviews', icon: HiOutlineCalendar },
     { to: '/offers',     label: 'Offers',     icon: HiOutlineBookOpen },
-    { to: '/analytics',  label: 'Analytics',  icon: HiOutlineViewGrid },
   ];
 
   const navItems = user?.role === 'hr' ? hrNavItems : studentNavItems;
