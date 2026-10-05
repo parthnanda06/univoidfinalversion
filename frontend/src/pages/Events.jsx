@@ -201,7 +201,7 @@ const Events = () => {
                             <img src="https://i.pravatar.cc/150?u=3" className="w-6 h-6 rounded-full border-2 border-white" alt="avatar" />
                             <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-50 flex items-center justify-center text-[8px] font-bold text-gray-500">+{event.registrationCount || 45}</div>
                          </div>
-                         <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View Details</button>
+                         <button onClick={() => { if(event.link) window.open(event.link, '_blank'); else toast.error('No details link provided'); }} className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View Details</button>
                       </div>
                     </div>
                   </div>

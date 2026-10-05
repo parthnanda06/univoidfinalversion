@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getDashboard } from '../services/api';
+import { getDashboard, getJobs, getCommunities, getNotes } from '../services/api';
 import { HiOutlineArrowRight, HiSparkles, HiOutlineBriefcase, HiOutlineUserGroup, HiOutlineCalendar, HiOutlineDocumentText, HiOutlineVideoCamera, HiOutlineLocationMarker, HiBookmark } from 'react-icons/hi';
 import { HiOutlineUserPlus } from 'react-icons/hi2';
 
@@ -156,46 +156,30 @@ const Dashboard = () => {
           </div>
           
           <div className="flex-1 space-y-4">
-            {/* Event 1 */}
-            <div className="flex gap-4 items-center group cursor-pointer">
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-900 to-[#5c4dff] rounded-xl flex items-center justify-center text-white shrink-0 shadow-md">
-                <span className="text-[10px] font-black text-center leading-tight">Code<br/>Relay</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-gray-900 truncate group-hover:text-[#5c4dff] transition-colors">Code Relay 2024</h3>
-                <p className="text-[11px] font-medium text-gray-500 mt-1">24 May, 9:00 AM</p>
-                <p className="text-[11px] text-gray-400 truncate">Main Auditorium</p>
-              </div>
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md shrink-0 border border-blue-100">Online</span>
-            </div>
-            
-            <div className="h-px bg-gray-50"></div>
-            
-            {/* Event 2 */}
-            <div className="flex gap-4 items-center group cursor-pointer">
-              <div className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden shrink-0 shadow-sm border border-gray-200">
-                 <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=100&q=80" alt="Event" className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-gray-900 truncate group-hover:text-[#5c4dff] transition-colors">Web Dev Workshop</h3>
-                <p className="text-[11px] font-medium text-gray-500 mt-1">21 May, 2:00 PM</p>
-                <p className="text-[11px] text-gray-400 truncate">A Block, Room 101</p>
-              </div>
-            </div>
-
-            <div className="h-px bg-gray-50"></div>
-
-            {/* Event 3 */}
-            <div className="flex gap-4 items-center group cursor-pointer">
-              <div className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden shrink-0 shadow-sm border border-gray-200">
-                 <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=100&q=80" alt="Event" className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-gray-900 truncate group-hover:text-[#5c4dff] transition-colors">Tech Fest '24</h3>
-                <p className="text-[11px] font-medium text-gray-500 mt-1">25 May, 10:00 AM</p>
-                <p className="text-[11px] text-gray-400 truncate">Main Auditorium</p>
-              </div>
-            </div>
+            {(!data?.upcomingEvents || data.upcomingEvents.length === 0) ? (
+              <p className="text-sm text-gray-500">No upcoming events right now.</p>
+            ) : (
+              data.upcomingEvents.slice(0, 3).map((event, index) => (
+                <div key={event._id || index} className="group cursor-pointer">
+                  <Link to="/events" className="flex gap-4 items-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-900 to-[#5c4dff] rounded-xl flex items-center justify-center text-white shrink-0 shadow-md p-1 overflow-hidden">
+                      <span className="text-[9px] font-black text-center leading-tight break-all">{event.title.substring(0, 10)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-bold text-gray-900 truncate group-hover:text-[#5c4dff] transition-colors">{event.title}</h3>
+                      <p className="text-[11px] font-medium text-gray-500 mt-1">
+                        {new Date(event.date).toLocaleDateString()} {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      <p className="text-[11px] text-gray-400 truncate">{event.location}</p>
+                    </div>
+                    {event.category && (
+                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md shrink-0 border border-blue-100">{event.category}</span>
+                    )}
+                  </Link>
+                  {index < Math.min(data.upcomingEvents.length, 3) - 1 && <div className="h-px bg-gray-50 mt-4"></div>}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -208,90 +192,93 @@ const Dashboard = () => {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Item 1 */}
-          <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] font-bold text-[#5c4dff] uppercase tracking-wider bg-[#5c4dff]/5 border border-[#5c4dff]/10 px-2.5 py-1 rounded-full">Internship</span>
-              <button className="text-gray-300 hover:text-[#5c4dff] transition-colors"><HiBookmark className="w-5 h-5" /></button>
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center shadow-sm">
-                <HiOutlineBriefcase className="w-5 h-5" />
+          {/* Job Item */}
+          {jobs.length > 0 && (
+            <Link to="/opportunities" className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group block">
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] font-bold text-[#5c4dff] uppercase tracking-wider bg-[#5c4dff]/5 border border-[#5c4dff]/10 px-2.5 py-1 rounded-full">Opportunity</span>
+                <button className="text-gray-300 hover:text-[#5c4dff] transition-colors"><HiBookmark className="w-5 h-5" /></button>
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors line-clamp-1">Frontend Developer Intern</h3>
-                <p className="text-[11px] font-medium text-gray-500">Acme Corp • Remote</p>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center shadow-sm">
+                  <HiOutlineBriefcase className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors line-clamp-1">{jobs[0].title}</h3>
+                  <p className="text-[11px] font-medium text-gray-500 truncate">{jobs[0].company} • {jobs[0].location}</p>
+                </div>
               </div>
-            </div>
-            <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-              <p className="text-[11px] font-medium text-gray-400">Apply by 31 May</p>
-            </div>
-          </div>
+              <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                <p className="text-[11px] font-medium text-gray-400">{jobs[0].type || 'Full-time'}</p>
+              </div>
+            </Link>
+          )}
 
-          {/* Item 2 */}
-          <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Community</span>
-              <button className="text-gray-300 hover:text-[#5c4dff] transition-colors"><HiBookmark className="w-5 h-5" /></button>
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-sm">
-                <HiSparkles className="w-5 h-5" />
+          {/* Community Item */}
+          {communities.length > 0 && (
+            <Link to="/communities" className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group block">
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Community</span>
+                <button className="text-gray-300 hover:text-[#5c4dff] transition-colors"><HiBookmark className="w-5 h-5" /></button>
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors line-clamp-1">AI & ML Club</h3>
-                <p className="text-[11px] font-medium text-gray-500">1.2k members</p>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-sm">
+                  {communities[0].icon ? <span className="text-lg">{communities[0].icon}</span> : <HiSparkles className="w-5 h-5" />}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors line-clamp-1">{communities[0].name}</h3>
+                  <p className="text-[11px] font-medium text-gray-500 truncate">{communities[0].members?.length || 0} members</p>
+                </div>
               </div>
-            </div>
-            <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-              <div className="flex -space-x-2">
-                <img src="https://i.pravatar.cc/150?u=1" className="w-6 h-6 rounded-full border-2 border-white" alt="member" />
-                <img src="https://i.pravatar.cc/150?u=2" className="w-6 h-6 rounded-full border-2 border-white" alt="member" />
-                <img src="https://i.pravatar.cc/150?u=3" className="w-6 h-6 rounded-full border-2 border-white" alt="member" />
-                <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-600">+32</div>
+              <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                 <p className="text-[11px] font-medium text-gray-400">Join to explore</p>
               </div>
-            </div>
-          </div>
+            </Link>
+          )}
 
-          {/* Item 3 */}
-          <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">Event</span>
-              <button className="text-gray-300 hover:text-[#5c4dff] transition-colors"><HiBookmark className="w-5 h-5" /></button>
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-sm">
-                <HiOutlineCalendar className="w-5 h-5" />
+          {/* Event Item */}
+          {data?.upcomingEvents?.length > 0 && (
+            <Link to="/events" className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group block">
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">Event</span>
+                <button className="text-gray-300 hover:text-[#5c4dff] transition-colors"><HiBookmark className="w-5 h-5" /></button>
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors line-clamp-1">Design Thinking Workshop</h3>
-                <p className="text-[11px] font-medium text-gray-500">22 May, 1:30 PM</p>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-sm">
+                  <HiOutlineCalendar className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors line-clamp-1">{data.upcomingEvents[0].title}</h3>
+                  <p className="text-[11px] font-medium text-gray-500 truncate">{new Date(data.upcomingEvents[0].date).toLocaleDateString()}</p>
+                </div>
               </div>
-            </div>
-            <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-              <p className="text-[11px] font-medium text-gray-400 flex items-center gap-1"><HiOutlineLocationMarker/> Seminar Hall</p>
-            </div>
-          </div>
+              <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                <p className="text-[11px] font-medium text-gray-400 flex items-center gap-1 truncate"><HiOutlineLocationMarker/> {data.upcomingEvents[0].location}</p>
+              </div>
+            </Link>
+          )}
 
-          {/* Item 4 */}
-          <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full">Note</span>
-              <button className="text-gray-300 hover:text-[#5c4dff] transition-colors"><HiBookmark className="w-5 h-5" /></button>
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-yellow-500 text-white flex items-center justify-center shadow-sm">
-                <HiOutlineDocumentText className="w-5 h-5" />
+          {/* Note Item */}
+          {notes.length > 0 && (
+            <Link to="/notes" className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group block">
+              <div className="flex justify-between items-start mb-4">
+                <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full">Note</span>
+                <button className="text-gray-300 hover:text-[#5c4dff] transition-colors"><HiBookmark className="w-5 h-5" /></button>
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors line-clamp-1">Operating Systems Notes</h3>
-                <p className="text-[11px] font-medium text-gray-500">By Aarav Patel</p>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-yellow-500 text-white flex items-center justify-center shadow-sm">
+                  <HiOutlineDocumentText className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors line-clamp-1">{notes[0].title}</h3>
+                  <p className="text-[11px] font-medium text-gray-500 truncate">{notes[0].course} • {notes[0].semester}</p>
+                </div>
               </div>
-            </div>
-            <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-              <p className="text-[11px] font-medium text-gray-400">4.8 ⭐ • 123 downloads</p>
-            </div>
-          </div>
+              <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                <p className="text-[11px] font-medium text-gray-400">{notes[0].downloads || 0} downloads</p>
+              </div>
+            </Link>
+          )}
         </div>
       </div>
       
