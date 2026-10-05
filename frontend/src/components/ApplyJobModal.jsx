@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   HiOutlineLocationMarker, HiOutlineCurrencyRupee, HiOutlineX, 
   HiOutlineDocumentText, HiOutlineCheck, HiLockClosed, HiArrowRight, HiArrowLeft 
@@ -8,8 +8,10 @@ import toast from 'react-hot-toast';
 const ApplyJobModal = ({ isOpen, onClose, job }) => {
   const [activeTab, setActiveTab] = useState('About');
   const [currentStep, setCurrentStep] = useState(1);
+  const fileInputRef = useRef(null);
   
   // Form State
+  const [resumeFile, setResumeFile] = useState({ name: 'Parth_Bhanushali_Resume.pdf', size: 245 * 1024 });
   const [coverLetter, setCoverLetter] = useState('');
   const [portfolioLink, setPortfolioLink] = useState('');
   const [experience, setExperience] = useState('');
@@ -21,6 +23,18 @@ const ApplyJobModal = ({ isOpen, onClose, job }) => {
   const handleNext = () => setCurrentStep(prev => Math.min(prev + 1, 3));
   const handleBack = () => setCurrentStep(prev => Math.max(prev - 1, 1));
   
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setResumeFile(e.target.files[0]);
+    }
+  };
+
+  const handleFileClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (currentStep < 3) {
@@ -183,13 +197,24 @@ const ApplyJobModal = ({ isOpen, onClose, job }) => {
                           <HiOutlineDocumentText className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-[13px] font-bold text-gray-900">Parth_Bhanushali_Resume.pdf</p>
-                          <p className="text-[10px] font-medium text-gray-500">(245 KB)</p>
+                          <p className="text-[13px] font-bold text-gray-900">{resumeFile ? resumeFile.name : 'No file selected'}</p>
+                          <p className="text-[10px] font-medium text-gray-500">
+                            {resumeFile ? `(${Math.round(resumeFile.size / 1024)} KB)` : ''}
+                          </p>
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <HiOutlineCheck className="w-4 h-4 text-emerald-500" />
-                        <button type="button" className="text-[10px] font-bold text-[#5c4dff] hover:underline">Change File</button>
+                        {resumeFile && <HiOutlineCheck className="w-4 h-4 text-emerald-500" />}
+                        <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          className="hidden" 
+                          accept=".pdf,.doc,.docx"
+                          onChange={handleFileChange}
+                        />
+                        <button type="button" onClick={handleFileClick} className="text-[10px] font-bold text-[#5c4dff] hover:underline">
+                          {resumeFile ? 'Change File' : 'Upload File'}
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -275,7 +300,7 @@ const ApplyJobModal = ({ isOpen, onClose, job }) => {
                     <div>
                       <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Resume Attached</p>
                       <p className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
-                        <HiOutlineCheck className="w-4 h-4 text-emerald-500" /> Parth_Bhanushali_Resume.pdf
+                        <HiOutlineCheck className="w-4 h-4 text-emerald-500" /> {resumeFile ? resumeFile.name : 'None'}
                       </p>
                     </div>
                     {coverLetter && (
