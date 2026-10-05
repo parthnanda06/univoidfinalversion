@@ -8,14 +8,24 @@ import { HiOutlineUserPlus } from 'react-icons/hi2';
 const Dashboard = () => {
   const { user } = useAuth();
   const [data, setData] = useState(null);
+  const [jobs, setJobs] = useState([]);
+  const [communities, setCommunities] = useState([]);
+  const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
-    getDashboard()
-      .then((res) => setData(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      getDashboard().catch(()=>({data:{}})),
+      getJobs().catch(()=>({data:{jobs:[]}})),
+      getCommunities().catch(()=>({data:[]})),
+      getNotes().catch(()=>({data:{notes:[]}}))
+    ]).then(([dashRes, jobsRes, commRes, notesRes]) => {
+      setData(dashRes.data);
+      setJobs(jobsRes.data?.jobs || []);
+      setCommunities(commRes.data || []);
+      setNotes(notesRes.data?.notes || []);
+      setLoading(false);
+    });
   }, []);
 
   if (loading) {
