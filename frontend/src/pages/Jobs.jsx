@@ -177,14 +177,22 @@ const Jobs = () => {
                   </div>
                   
                   <div className="mt-auto grid grid-cols-2 gap-3">
-                     <button className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 font-bold text-[11px] hover:bg-gray-50 transition-colors">
+                     <button 
+                        onClick={() => handleApply(job)}
+                        className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-700 font-bold text-[11px] hover:bg-gray-50 transition-colors"
+                     >
                         View Details
                      </button>
                      <button 
-                        onClick={() => handleApply(job)}
-                        className="w-full py-2.5 rounded-xl bg-[#5c4dff] hover:bg-[#4a3ddf] text-white font-bold text-[11px] shadow-md shadow-[#5c4dff]/20 transition-all"
+                        onClick={() => job.hasApplied ? null : handleApply(job)}
+                        disabled={job.hasApplied}
+                        className={`w-full py-2.5 rounded-xl font-bold text-[11px] transition-all ${
+                          job.hasApplied 
+                          ? 'bg-emerald-500 text-white cursor-not-allowed shadow-none' 
+                          : 'bg-[#5c4dff] hover:bg-[#4a3ddf] text-white shadow-md shadow-[#5c4dff]/20'
+                        }`}
                      >
-                        Apply
+                        {job.hasApplied ? 'Applied' : 'Apply'}
                      </button>
                   </div>
                </div>

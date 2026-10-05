@@ -1,46 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { HiOutlineBriefcase, HiOutlineUserGroup, HiOutlineCalendar, HiOutlineChartBar, HiOutlineLocationMarker, HiOutlineClock, HiOutlinePencil, HiOutlinePause, HiOutlineXCircle, HiOutlineSearch, HiDotsVertical, HiOutlineFilter } from 'react-icons/hi';
+import { getJob, updateAppStatus } from '../services/api';
 
 const HRJobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [pipelineStage, setPipelineStage] = useState('Applied'); // For Candidates tab
+  const [pipelineStage, setPipelineStage] = useState('pending'); // For Candidates tab
+  const [job, setJob] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for Candidates tab pipeline
-  const pipeline = [
-    { name: 'Applied', count: 86, color: 'bg-gray-100 text-gray-700' },
-    { name: 'Screening', count: 28, color: 'bg-blue-100 text-blue-700' },
-    { name: 'Shortlisted', count: 18, color: 'bg-indigo-100 text-indigo-700' },
-    { name: 'Interview', count: 8, color: 'bg-amber-100 text-amber-700' },
-    { name: 'Offer', count: 4, color: 'bg-emerald-100 text-emerald-700' },
-    { name: 'Hired', count: 1, color: 'bg-emerald-200 text-emerald-800' },
-  ];
+  useEffect(() => {
+    fetchJob();
+  }, [id]);
 
-  const candidatesData = {
-    'Applied': [
-      { id: 101, name: 'Aarav Mehta', role: 'Frontend Developer Intern', status: 'Applied', date: '20 Sep 2026' },
-      { id: 102, name: 'Ishita Verma', role: 'Frontend Developer Intern', status: 'Applied', date: '21 Sep 2026' }
-    ],
-    'Screening': [
-      { id: 103, name: 'Dev Shah', role: 'Frontend Developer Intern', status: 'Screening', date: '19 Sep 2026' }
-    ],
-    'Shortlisted': [
-      { id: 104, name: 'Sneha Iyer', role: 'Frontend Developer Intern', status: 'Shortlisted', date: '18 Sep 2026' }
-    ],
-    'Interview': [
-      { id: 105, name: 'Tanvi Shah', role: 'Frontend Developer Intern', status: 'Interview', date: '15 Sep 2026' }
-    ],
-    'Offer': [
-      { id: 106, name: 'Rahul Patel', role: 'Frontend Developer Intern', status: 'Offer', date: '10 Sep 2026' }
-    ],
-    'Hired': [
-      { id: 107, name: 'Neha Desai', role: 'Frontend Developer Intern', status: 'Hired', date: '5 Sep 2026' }
-    ]
+  const fetchJob = () => {
+    getJob(id).then(res => {
+      setJob(res.data);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
   };
 
-  const currentCandidates = candidatesData[pipelineStage] || [];
+  const handleStatusChange = async (appId, newStatus) => {
+    try {
+      await updateAppStatus(id, appId, newStatus);
+      fetchJob();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) return <div className="p-8">Loading...</div>;
+  if (!job) return <div className="p-8">Job not found.</div>;
+
+  const applications = job.applications || [];
+  
+  // Group candidates by status (backend status: 'pending', 'reviewed', 'shortlisted', 'rejected')
+  // We map 'Applied' -> 'pending', 'Screening' -> 'reviewed', 'Shortlisted' -> 'shortlisted', 'Rejected' -> 'rejected'
+  
+  const pipeline = [
+    { name: 'Applied', status: 'pending', activeColor: 'bg-indigo-50 border-indigo-200 text-indigo-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-indigo-600' },
+    { name: 'Screening', status: 'reviewed', activeColor: 'bg-blue-50 border-blue-200 text-blue-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-gray-900' },
+    { name: 'Shortlisted', status: 'shortlisted', activeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-gray-900' },
+    { name: 'Rejected', status: 'rejected', activeColor: 'bg-red-50 border-red-200 text-red-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-red-500' }
+  ];
+
+  const currentCandidates = applications.filter(app => app.status === pipelineStage);
 
   return (
     <div className="bg-[#f8fafc] min-h-screen p-6 lg:p-8 font-sans">
@@ -50,18 +59,18 @@ const HRJobDetails = () => {
         </button>
         <div className="flex items-center justify-between">
            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold font-mono text-sm shadow-sm">&lt;/&gt;</div>
-              <div>
-                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                   Frontend Developer Intern
-                   <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Active</span>
-                 </h1>
-                 <div className="flex items-center gap-3 text-sm text-gray-500 font-medium mt-1">
-                    <span className="flex items-center gap-1"><HiOutlineBriefcase className="w-4 h-4"/> Engineering</span>
-                    <span className="flex items-center gap-1"><HiOutlineClock className="w-4 h-4"/> Internship</span>
-                    <span className="flex items-center gap-1"><HiOutlineLocationMarker className="w-4 h-4"/> Vadodara (Hybrid)</span>
-                    <span className="flex items-center gap-1"><HiOutlineCalendar className="w-4 h-4"/> Posted 25 Sep 2026</span>
-                 </div>
+               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold font-mono text-sm shadow-sm">{job.title[0]}</div>
+               <div>
+                  <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    {job.title}
+                    <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{job.isActive ? 'Active' : 'Closed'}</span>
+                  </h1>
+                  <div className="flex items-center gap-3 text-sm text-gray-500 font-medium mt-1">
+                     <span className="flex items-center gap-1"><HiOutlineBriefcase className="w-4 h-4"/> {job.company}</span>
+                     <span className="flex items-center gap-1"><HiOutlineClock className="w-4 h-4"/> {job.type}</span>
+                     <span className="flex items-center gap-1"><HiOutlineLocationMarker className="w-4 h-4"/> {job.location}</span>
+                     <span className="flex items-center gap-1"><HiOutlineCalendar className="w-4 h-4"/> Posted {new Date(job.createdAt).toLocaleDateString()}</span>
+                  </div>
               </div>
            </div>
            <div className="flex gap-2">
@@ -86,7 +95,7 @@ const HRJobDetails = () => {
                onClick={() => setActiveTab(tab)}
                className={`px-4 py-3 text-sm font-bold capitalize transition-colors border-b-2 -mb-px ${activeTab === tab ? 'text-[#5c4dff] border-[#5c4dff]' : 'text-gray-500 border-transparent hover:text-gray-900'}`}
              >
-               {tab} {tab === 'candidates' && '(86)'} {tab === 'interviews' && '(8)'}
+               {tab} {tab === 'candidates' && `(${applications.length})`} {tab === 'interviews' && '(0)'}
              </button>
           ))}
         </div>
@@ -102,11 +111,11 @@ const HRJobDetails = () => {
            <div className="lg:col-span-2 space-y-6">
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                  <h3 className="font-bold text-gray-900 mb-2">Job Description</h3>
-                 <p className="text-sm text-gray-700 mb-6 leading-relaxed">Looking for a passionate Frontend Developer Intern to join our fast-paced startup building modern web applications using React and Tailwind CSS.</p>
+                 <p className="text-sm text-gray-700 mb-6 leading-relaxed whitespace-pre-wrap">{job.description}</p>
                  
                  <h4 className="font-bold text-gray-900 mb-2 text-sm">Full Description</h4>
-                 <p className="text-sm text-gray-700 leading-relaxed mb-6">
-                   We are looking for a passionate Frontend Developer Intern to join our team. You will work on building modern, responsive, user-friendly web applications using React.js and Tailwind CSS. You will collaborate with the UI/UX product team and back end developers and designers to deliver high quality product features.
+                 <p className="text-sm text-gray-700 leading-relaxed mb-6 whitespace-pre-wrap">
+                   {job.description}
                  </p>
 
                  <h4 className="font-bold text-gray-900 mb-3 text-sm">Key Responsibilities</h4>
@@ -197,24 +206,18 @@ const HRJobDetails = () => {
         <div className="flex flex-col gap-6">
            {/* Pipeline bar */}
            <div className="flex gap-4 overflow-x-auto pb-2">
-             {[
-               { name: 'Applied', count: 86, activeColor: 'bg-indigo-50 border-indigo-200 text-indigo-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-indigo-600' },
-               { name: 'Screening', count: 28, activeColor: 'bg-blue-50 border-blue-200 text-blue-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-gray-900' },
-               { name: 'Shortlisted', count: 18, activeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-gray-900' },
-               { name: 'Interview', count: 8, activeColor: 'bg-amber-50 border-amber-200 text-amber-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-gray-900' },
-               { name: 'Offer', count: 4, activeColor: 'bg-purple-50 border-purple-200 text-purple-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-gray-900' },
-               { name: 'Hired', count: 2, activeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-gray-900' },
-               { name: 'Rejected', count: 12, activeColor: 'bg-red-50 border-red-200 text-red-700', inactiveColor: 'bg-white border-gray-100', numColor: 'text-red-500' }
-             ].map(stage => (
+             {pipeline.map(stage => {
+               const count = applications.filter(a => a.status === stage.status).length;
+               return (
                <button 
                  key={stage.name} 
-                 onClick={() => setPipelineStage(stage.name)}
-                 className={`flex-1 min-w-[100px] p-4 rounded-2xl border flex flex-col items-center justify-center transition-all ${pipelineStage === stage.name ? stage.activeColor : `${stage.inactiveColor} hover:border-gray-300 shadow-sm`}`}
+                 onClick={() => setPipelineStage(stage.status)}
+                 className={`flex-1 min-w-[100px] p-4 rounded-2xl border flex flex-col items-center justify-center transition-all ${pipelineStage === stage.status ? stage.activeColor : `${stage.inactiveColor} hover:border-gray-300 shadow-sm`}`}
                >
-                 <span className={`text-2xl font-black mb-1 ${pipelineStage === stage.name ? '' : stage.numColor}`}>{stage.count}</span>
-                 <span className={`text-xs font-bold ${pipelineStage === stage.name ? '' : 'text-gray-500'}`}>{stage.name}</span>
+                 <span className={`text-2xl font-black mb-1 ${pipelineStage === stage.status ? '' : stage.numColor}`}>{count}</span>
+                 <span className={`text-xs font-bold ${pipelineStage === stage.status ? '' : 'text-gray-500'}`}>{stage.name}</span>
                </button>
-             ))}
+             )})}
            </div>
            
            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -247,27 +250,34 @@ const HRJobDetails = () => {
                  </tr>
                </thead>
                <tbody>
-                 {[
-                   { name: 'Aarav Mehta', college: 'Parul University', skills: 'React, JavaScript, Tailwind', applied: '30 Sep 2026', status: 'New', color: 'bg-blue-50 text-blue-600' },
-                   { name: 'Ishita Sharma', college: 'MSU, Vadodara', skills: 'React, Node.js, MongoDB', applied: '30 Sep 2026', status: 'Screening', color: 'bg-purple-50 text-purple-600' },
-                   { name: 'Rohan Patel', college: 'Parul University', skills: 'JavaScript, UI/UX', applied: '29 Sep 2026', status: 'Shortlisted', color: 'bg-emerald-50 text-emerald-600' },
-                   { name: 'Neha Desai', college: 'Nirma University', skills: 'Figma, UI/UX', applied: '29 Sep 2026', status: 'In Review', color: 'bg-amber-50 text-amber-600' },
-                   { name: 'Tanvi Shah', college: 'Charusat', skills: 'TypeScript, Git', applied: '28 Sep 2026', status: 'Interview', color: 'bg-blue-50 text-blue-600' },
-                   { name: 'Dev Shah', college: 'Parul University', skills: 'React, Tailwind', applied: '28 Sep 2026', status: 'Offer', color: 'bg-indigo-50 text-indigo-600' },
-                   { name: 'Kavya Singh', college: 'MSU, Vadodara', skills: 'React, Node.js', applied: '27 Sep 2026', status: 'Hired', color: 'bg-emerald-50 text-emerald-600' },
-                 ].map((c, i) => (
-                   <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer transition-colors" onClick={() => navigate('/candidates/101')}>
+                 {currentCandidates.map((c, i) => (
+                   <tr key={c.id || i} className="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer transition-colors" onClick={() => navigate(`/candidates/${c.id}`)}>
                      <td className="px-6 py-3">
                        <div className="flex items-center gap-3">
-                         <img src={`https://i.pravatar.cc/150?u=${i + 10}`} className="w-8 h-8 rounded-full object-cover" alt="" />
-                         <span className="font-bold text-gray-900 text-sm">{c.name}</span>
+                         <img src={c.applicant?.avatar || `https://i.pravatar.cc/150?u=${c.id}`} className="w-8 h-8 rounded-full object-cover" alt="" />
+                         <span className="font-bold text-gray-900 text-sm">{c.applicant?.name}</span>
                        </div>
                      </td>
-                     <td className="px-6 py-3 text-xs text-gray-600 font-medium">{c.college}</td>
-                     <td className="px-6 py-3 text-xs text-gray-600 font-medium">{c.skills}</td>
-                     <td className="px-6 py-3 text-xs text-gray-600 font-medium">{c.applied}</td>
+                     <td className="px-6 py-3 text-xs text-gray-600 font-medium">{c.applicant?.college || 'Not provided'}</td>
+                     <td className="px-6 py-3 text-xs text-gray-600 font-medium">{(c.applicant?.skills || []).join(', ') || 'None'}</td>
+                     <td className="px-6 py-3 text-xs text-gray-600 font-medium">{new Date(c.createdAt).toLocaleDateString()}</td>
                      <td className="px-6 py-3">
-                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${c.color}`}>{c.status}</span>
+                       <select 
+                          value={c.status}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => handleStatusChange(c.id, e.target.value)}
+                          className={`px-2 py-1 rounded-md text-[10px] font-bold border-none outline-none ${
+                            c.status === 'pending' ? 'bg-indigo-50 text-indigo-700' :
+                            c.status === 'reviewed' ? 'bg-blue-50 text-blue-700' :
+                            c.status === 'shortlisted' ? 'bg-emerald-50 text-emerald-700' :
+                            'bg-red-50 text-red-700'
+                          }`}
+                       >
+                         <option value="pending">Applied</option>
+                         <option value="reviewed">Screening</option>
+                         <option value="shortlisted">Shortlisted</option>
+                         <option value="rejected">Rejected</option>
+                       </select>
                      </td>
                      <td className="px-6 py-3 text-right">
                        <button className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg" onClick={(e) => e.stopPropagation()}>
@@ -281,7 +291,7 @@ const HRJobDetails = () => {
              
              {/* Pagination */}
              <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-medium">
-               <span>Showing 1-7 of 86 candidates</span>
+               <span>Showing {currentCandidates.length} candidates</span>
                <div className="flex gap-1 items-center">
                  <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100">&lt;</button>
                  <button className="w-7 h-7 flex items-center justify-center rounded bg-[#5c4dff] text-white font-bold shadow-sm">1</button>

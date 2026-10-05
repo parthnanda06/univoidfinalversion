@@ -4,6 +4,7 @@ import {
   HiOutlineDocumentText, HiOutlineCheck, HiLockClosed, HiArrowRight, HiArrowLeft 
 } from 'react-icons/hi';
 import toast from 'react-hot-toast';
+import { applyToJob } from '../services/api';
 
 const ApplyJobModal = ({ isOpen, onClose, job }) => {
   const [activeTab, setActiveTab] = useState('About');
@@ -35,15 +36,20 @@ const ApplyJobModal = ({ isOpen, onClose, job }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (currentStep < 3) {
       handleNext();
     } else {
-      // Final Submit
-      toast.success('Application submitted successfully!');
-      onClose();
-      setTimeout(() => setCurrentStep(1), 300); // reset after close
+      try {
+        await applyToJob(job._id || job.id, { coverLetter, resumeLink: resumeFile?.name || '' });
+        toast.success('Application submitted successfully!');
+        onClose();
+        setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        console.error(error);
+        toast.error(error.response?.data?.message || 'Failed to apply');
+      }
     }
   };
 
