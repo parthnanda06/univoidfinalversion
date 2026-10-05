@@ -112,6 +112,8 @@ export const updateJob          = (id, data) => API.put(`/jobs/${id}`, data);
 export const deleteJob          = (id)     => API.delete(`/jobs/${id}`);
 export const getApplicants      = (id)     => API.get(`/jobs/${id}/applicants`);
 export const updateAppStatus    = (jobId, appId, status) => API.patch(`/jobs/${jobId}/applicants/${appId}`, { status });
+export const getApplication     = (id)     => API.get(`/jobs/applications/${id}`);
+export const getHROffers        = ()       => API.get('/jobs/hr/offers');
 
 // Dashboard
 export const getDashboard = () => API.get('/dashboard');
