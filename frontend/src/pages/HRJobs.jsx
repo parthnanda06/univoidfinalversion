@@ -1,18 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiPlus, HiOutlineSearch, HiDotsVertical } from 'react-icons/hi';
+import { getHRJobs } from '../services/api';
 
 const HRJobs = () => {
   const navigate = useNavigate();
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const jobs = [
-    { id: '1', title: 'Frontend Developer Intern', dept: 'Engineering', type: 'Internship', location: 'Vadodara (Hybrid)', apps: 86, status: 'Active', posted: '25 Sep 2026', deadline: '30 Oct 2026', iconBg: 'bg-blue-50', iconColor: 'text-blue-600', iconLetter: 'F' },
-    { id: '2', title: 'Process Associate', dept: 'Operations', type: 'Full Time', location: 'Vadodara (On-site)', apps: 64, status: 'Active', posted: '24 Sep 2026', deadline: '10 Oct 2026', iconBg: 'bg-purple-50', iconColor: 'text-purple-600', iconLetter: 'P' },
-    { id: '3', title: 'AI/ML Engineer', dept: 'Engineering', type: 'Full Time', location: 'Remote', apps: 52, status: 'Active', posted: '20 Sep 2026', deadline: '15 Oct 2026', iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600', iconLetter: 'A' },
-    { id: '4', title: 'UI/UX Designer', dept: 'Design', type: 'Internship', location: 'Vadodara (Hybrid)', apps: 48, status: 'Active', posted: '18 Sep 2026', deadline: '10 Oct 2026', iconBg: 'bg-orange-50', iconColor: 'text-orange-600', iconLetter: 'U' },
-    { id: '5', title: 'Data Analyst', dept: 'Analytics', type: 'Full Time', location: 'Remote', apps: 42, status: 'Active', posted: '15 Sep 2026', deadline: '10 Oct 2026', iconBg: 'bg-pink-50', iconColor: 'text-pink-600', iconLetter: 'D' },
-    { id: '6', title: 'Backend Developer', dept: 'Engineering', type: 'Internship', location: 'Vadodara (On-site)', apps: 38, status: 'Paused', posted: '12 Sep 2026', deadline: '10 Oct 2026', iconBg: 'bg-blue-50', iconColor: 'text-blue-600', iconLetter: 'B' }
-  ];
+  useEffect(() => {
+    getHRJobs().then(res => {
+      setJobs(res.data);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <div className="bg-[#f8fafc] min-h-screen p-6 lg:p-8 font-sans">
@@ -67,27 +71,27 @@ const HRJobs = () => {
           <tbody>
             {jobs.map((job) => (
               <tr 
-                key={job.id} 
-                onClick={() => navigate(`/jobs/${job.id}`)}
+                key={job._id || job.id} 
+                onClick={() => navigate(`/jobs/${job._id || job.id}`)}
                 className="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer transition-colors group"
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl ${job.iconBg} ${job.iconColor} flex items-center justify-center font-bold text-lg shadow-sm`}>{job.iconLetter}</div>
+                    <div className={`w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg shadow-sm`}>{job.title[0]}</div>
                     <span className="font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors">{job.title}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500 font-medium">{job.dept}</td>
-                <td className={`px-6 py-4 text-sm font-bold ${job.type === 'Internship' ? 'text-[#7f74ff]' : 'text-blue-500'}`}>{job.type}</td>
+                <td className="px-6 py-4 text-sm text-gray-500 font-medium">{job.company}</td>
+                <td className={`px-6 py-4 text-sm font-bold ${job.type === 'internship' ? 'text-[#7f74ff]' : 'text-blue-500'}`}>{job.type}</td>
                 <td className="px-6 py-4 text-sm text-gray-500 font-medium">{job.location}</td>
-                <td className="px-6 py-4 font-black text-gray-900">{job.apps}</td>
+                <td className="px-6 py-4 font-black text-gray-900">{job.applicantCount || 0}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${job.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                    {job.status}
+                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${job.isActive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                    {job.isActive ? 'Active' : 'Closed'}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-xs font-semibold text-gray-500">{job.posted}</td>
-                <td className="px-6 py-4 text-xs font-semibold text-gray-500">{job.deadline}</td>
+                <td className="px-6 py-4 text-xs font-semibold text-gray-500">{new Date(job.createdAt).toLocaleDateString()}</td>
+                <td className="px-6 py-4 text-xs font-semibold text-gray-500">{job.deadline ? new Date(job.deadline).toLocaleDateString() : 'N/A'}</td>
                 <td className="px-6 py-4 text-right">
                   <button onClick={(e) => e.stopPropagation()} className="p-2 text-gray-400 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors">
                     <HiDotsVertical className="w-5 h-5" />

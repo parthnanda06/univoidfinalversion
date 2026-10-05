@@ -1,10 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiCheck, HiOutlineCheckCircle } from 'react-icons/hi';
+import { createJob } from '../services/api';
 
 const HRAddJob = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    title: 'Frontend Developer Intern',
+    company: 'TechNova',
+    location: 'Remote',
+    type: 'internship',
+    description: 'Looking for a passionate Frontend Developer...',
+    skills: 'React, JavaScript',
+    salary: '₹15k - ₹25k / month'
+  });
+
+  const handlePublish = async () => {
+    try {
+      const skillsArray = formData.skills.split(',').map(s => s.trim());
+      await createJob({ ...formData, skills: skillsArray });
+      setStep(5);
+    } catch (err) {
+      console.error(err);
+      alert('Error creating job');
+    }
+  };
 
   const steps = [
     { num: 1, label: 'Basic Info' },
@@ -68,7 +89,19 @@ const HRAddJob = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Job Title *</label>
-                <input type="text" defaultValue="Frontend Developer Intern" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none" />
+                <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Company *</label>
+                <input type="text" value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Location *</label>
+                <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Salary *</label>
+                <input type="text" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Department *</label>
@@ -76,10 +109,11 @@ const HRAddJob = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Job Type *</label>
-                <div className="flex gap-2">
-                  <button className="bg-[#5c4dff]/10 text-[#5c4dff] border border-[#5c4dff]/20 px-3 py-1.5 rounded-md text-xs font-bold">Internship</button>
-                  <button className="bg-gray-50 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-md text-xs font-bold">Full Time</button>
-                </div>
+                <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none">
+                  <option value="internship">Internship</option>
+                  <option value="full-time">Full Time</option>
+                  <option value="part-time">Part Time</option>
+                </select>
               </div>
             </div>
           </div>
@@ -93,7 +127,7 @@ const HRAddJob = () => {
              </div>
              <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Full Description *</label>
-                <textarea rows={6} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none"></textarea>
+                <textarea rows={6} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none"></textarea>
              </div>
           </div>
         )}
@@ -101,12 +135,8 @@ const HRAddJob = () => {
         {step === 3 && (
           <div className="grid grid-cols-1 gap-6">
              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Required Skills *</label>
-                <div className="flex gap-2 mb-2">
-                   <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold">React ×</span>
-                   <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold">JavaScript ×</span>
-                </div>
-                <input type="text" placeholder="+ Add skill" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none" />
+                <label className="block text-xs font-bold text-gray-700 mb-1">Required Skills (comma separated) *</label>
+                <input type="text" value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} placeholder="e.g. React, JavaScript" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#5c4dff] outline-none" />
              </div>
           </div>
         )}
@@ -135,7 +165,7 @@ const HRAddJob = () => {
         {step < 4 ? (
           <button onClick={() => setStep(step+1)} className="bg-[#5c4dff] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#4a3ddf]">Next →</button>
         ) : (
-          <button onClick={() => setStep(5)} className="bg-[#5c4dff] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#4a3ddf]">Publish Job</button>
+          <button onClick={handlePublish} className="bg-[#5c4dff] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#4a3ddf]">Publish Job</button>
         )}
       </div>
     </div>

@@ -30,7 +30,7 @@ const Jobs = () => {
     // Ideally this would fetch from backend, but keeping this simple based on mock
     getJobs()
       .then((res) => {
-        setJobs(res.data);
+        setJobs(res.data.jobs || []);
         setLoading(false);
       })
       .catch(() => {
@@ -142,37 +142,34 @@ const Jobs = () => {
          </div>
          
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendedJobs.map(job => (
-               <div key={job.id} className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group flex flex-col relative">
+            {jobs.slice(0, 6).map(job => (
+               <div key={job.id || job._id} className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] hover:shadow-lg transition-all group flex flex-col relative">
                   <button className="absolute top-6 right-6 text-gray-300 hover:text-gray-500 transition-colors">
                      <HiOutlineBookmark className="w-5 h-5" />
                   </button>
                   
                   <div className="flex items-center gap-3 mb-5">
                      <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center text-white font-bold text-lg">
-                        {job.logo}
+                        {job.company?.[0] || 'C'}
                      </div>
                      <div>
                         <h3 className="text-sm font-bold text-gray-900">{job.company}</h3>
-                        <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 tracking-wide uppercase mt-1 inline-block">
-                           {job.match}
-                        </span>
                      </div>
                   </div>
                   
-                  <h4 className="text-[15px] font-bold text-gray-900 mb-2">{job.role}</h4>
+                  <h4 className="text-[15px] font-bold text-gray-900 mb-2">{job.title}</h4>
                   
                   <div className="space-y-1.5 mb-5">
                      <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1.5">
-                        <HiOutlineLocationMarker className="w-3.5 h-3.5 text-gray-400" /> {job.type}
+                        <HiOutlineLocationMarker className="w-3.5 h-3.5 text-gray-400" /> {job.location} • {job.type}
                      </p>
                      <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1.5">
-                        <HiOutlineCurrencyRupee className="w-3.5 h-3.5 text-gray-400" /> {job.salary}
+                        <HiOutlineCurrencyRupee className="w-3.5 h-3.5 text-gray-400" /> {job.salary || 'Not specified'}
                      </p>
                   </div>
                   
                   <div className="flex flex-wrap gap-2 mb-6">
-                     {job.tags.map(tag => (
+                     {(job.skills || []).map(tag => (
                         <span key={tag} className="text-[10px] font-bold text-[#5c4dff] bg-[#5c4dff]/5 px-2.5 py-1 rounded-md border border-[#5c4dff]/10">
                            {tag}
                         </span>
