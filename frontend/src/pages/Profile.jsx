@@ -144,13 +144,16 @@ const Profile = () => {
       } catch (err) {}
     };
     fetchProfile();
-    fetchPosts();
-  }, []);
+    if (user?.id) {
+      fetchPosts();
+    }
+  }, [user?.id]);
 
   const fetchPosts = async () => {
+    if (!user || !user.id) return;
     try {
       setLoadingPosts(true);
-      const res = await getGlobalPosts();
+      const res = await getUserPosts(user.id);
       setMockPosts(res.data.map(p => ({
         ...p,
         timeAgo: 'Just now', 
@@ -325,25 +328,29 @@ const Profile = () => {
     }
   };
 
-  const handleSaveSkill = async (skillData) => {
-    let updatedSkills = [...(form.complexSkills || [])];
-    
-    if (skillModalMode === 'add') {
-      const newSkill = { ...skillData, id: Date.now().toString() };
-      updatedSkills.push(newSkill);
-    } else {
-      updatedSkills = updatedSkills.map(s => s.id === skillData.id ? skillData : s);
-    }
-    
-    set('complexSkills', updatedSkills);
+  const handleSaveSkill = async (newSkillsArray) => {
+    const updatedComplexSkills = newSkillsArray.map((s, i) => {
+      const existing = form.complexSkills?.find(cs => cs.name === s);
+      return existing || {
+        id: `skill-${Date.now()}-${i}`,
+        name: s,
+        category: 'Technical Skills',
+        level: 'Intermediate',
+        percentage: 70,
+        description: ''
+      };
+    });
+
+    set('skills', newSkillsArray);
+    set('complexSkills', updatedComplexSkills);
     
     try {
-      const { data } = await updateProfile({ ...form, complexSkills: updatedSkills });
+      const { data } = await updateProfile({ ...form, skills: newSkillsArray, complexSkills: updatedComplexSkills });
       setUser(data);
       setIsSkillModalOpen(false);
-      toast.success(skillModalMode === 'add' ? 'Skill added!' : 'Skill updated!');
+      toast.success('Skills updated!');
     } catch (err) {
-      toast.error('Failed to save skill');
+      toast.error('Failed to save skills');
     }
   };
 
