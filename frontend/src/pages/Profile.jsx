@@ -633,11 +633,11 @@ const Profile = () => {
             {/* Stats Row */}
             <div className="mt-8 pt-6 border-t border-gray-100">
               <div className="flex sm:flex-wrap justify-between sm:justify-start sm:gap-16 gap-4 px-2 sm:px-8 overflow-x-auto no-scrollbar pb-2">
-                <StatItem label="Connections" value={profileData?.connections?.length || 12} onClick={() => setDrawer('connections')} />
-                <StatItem label="Communities" value={profileData?.joinedCommunities?.length || 8} onClick={() => setDrawer('communities')} />
-                <StatItem label="Notes" value={24} />
-                <StatItem label="Achievements" value={6} />
-                <StatItem label="Projects" value={3} />
+                <StatItem label="Connections" value={profileData?.connections?.length || 0} onClick={() => setDrawer('connections')} />
+                <StatItem label="Communities" value={profileData?.joinedCommunities?.length || 0} onClick={() => setDrawer('communities')} />
+                <StatItem label="Notes" value={profileData?.notes?.length || 0} />
+                <StatItem label="Achievements" value={profileData?.achievements?.length || 0} />
+                <StatItem label="Projects" value={profileData?.projectsList?.length || 0} />
               </div>
             </div>
           </div>
@@ -838,27 +838,23 @@ const Profile = () => {
                     <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all</button>
                  </div>
                  <div className="space-y-4">
-                    {[
-                       { title: 'AI Startup Idea Validator', desc: 'AI-based platform that validates startup ideas using ML models and market analysis.', tags: ['Python', 'ML', 'Flask'], icon: '🚀', bg: 'bg-blue-50 text-blue-500' },
-                       { title: 'IPL Chatbot', desc: 'NLP chatbot that provides IPL updates, stats and answers fan queries.', tags: ['Python', 'NLP', 'Flask'], icon: '🏏', bg: 'bg-indigo-900 text-yellow-400' },
-                       { title: 'ReWear - Odoo Hackathon', desc: 'Sustainable fashion platform built during Odoo Hackathon.', tags: ['MongoDB', 'Express', 'React'], icon: '👕', bg: 'bg-teal-50 text-teal-500' },
-                    ].map((p, i) => (
+                    {profileData?.projectsList?.length > 0 ? profileData.projectsList.slice(0,3).map((p, i) => (
                        <div key={i} className="flex gap-3 group">
-                          <div className={`w-10 h-10 rounded-xl ${p.bg} flex items-center justify-center shrink-0 border border-gray-100 text-lg`}>
-                             {p.icon}
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 border border-gray-100 text-lg">
+                             🚀
                           </div>
                           <div className="flex-1 min-w-0">
                              <div className="flex items-start justify-between">
                                 <h4 className="text-[12px] font-bold text-gray-900 group-hover:text-[#5c4dff] transition-colors">{p.title}</h4>
-                                <button className="text-gray-400 hover:text-[#5c4dff] opacity-0 group-hover:opacity-100 transition-opacity"><HiOutlineExternalLink className="w-3.5 h-3.5" /></button>
+                                {p.link && <a href={p.link} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-[#5c4dff] opacity-0 group-hover:opacity-100 transition-opacity"><HiOutlineExternalLink className="w-3.5 h-3.5" /></a>}
                              </div>
-                             <p className="text-[10px] font-medium text-gray-500 mt-0.5 leading-relaxed mb-1.5 line-clamp-2">{p.desc}</p>
+                             <p className="text-[10px] font-medium text-gray-500 mt-0.5 leading-relaxed mb-1.5 line-clamp-2">{p.description || p.desc}</p>
                              <div className="flex flex-wrap gap-1">
-                                {p.tags.map(t => <span key={t} className="bg-gray-50 border border-gray-100 text-gray-500 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">{t}</span>)}
+                                {(p.tags || []).slice(0,3).map(t => <span key={t} className="bg-gray-50 border border-gray-100 text-gray-500 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">{t}</span>)}
                              </div>
                           </div>
                        </div>
-                    ))}
+                    )) : <p className="text-xs text-gray-500">No projects added yet.</p>}
                  </div>
               </div>
 
@@ -893,14 +889,16 @@ const Profile = () => {
                     <h3 className="text-[13px] font-bold text-gray-900">Achievements</h3>
                     <button className="text-[11px] font-bold text-[#5c4dff] hover:text-[#4a3ddf]">View all</button>
                  </div>
-                 <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                       <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 text-lg">🏆</div>
-                       <div>
-                          <h4 className="text-[12px] font-bold text-gray-900">AVISHKAAR Season 3 - Finalist</h4>
-                          <p className="text-[10px] font-medium text-gray-500">Hackathon</p>
+                                  <div className="space-y-4">
+                    {profileData?.achievements?.length > 0 ? profileData.achievements.slice(0,3).map((a, i) => (
+                       <div key={i} className="flex items-center gap-3 group cursor-pointer">
+                          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 text-lg">🏆</div>
+                          <div>
+                             <h4 className="text-[12px] font-bold text-gray-900">{a.title}</h4>
+                             <p className="text-[10px] font-medium text-gray-500">{a.category || a.type || 'Achievement'}</p>
+                          </div>
                        </div>
-                    </div>
+                    )) : <p className="text-xs text-gray-500">No achievements added.</p>}
                  </div>
               </div>
 
