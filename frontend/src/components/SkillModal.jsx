@@ -27,11 +27,11 @@ const SkillModal = ({ isOpen, onClose, onSave, initialSkills = [] }) => {
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedSkills(initialSkills);
+      setSelectedSkills(initialSkills || []);
       setSearchQuery('');
       setShowDropdown(false);
     }
-  }, [isOpen, initialSkills]);
+  }, [isOpen]);
 
   // Click outside to close dropdown
   useEffect(() => {
